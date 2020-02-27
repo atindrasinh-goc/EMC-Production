@@ -1,0 +1,106 @@
+<apex:page showHeader="false" title="My Reports" sidebar="false" controller="ReportListController" action="{!getRedirected}">
+    <head>  
+    <apex:include pageName="EMC_Common_Head"/>
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.13/angular.js"></script> 
+    <script type="text/javascript">
+        var app = angular.module('reportModule',[]);
+        app.controller('reportController',['$scope',function($scope){
+            $scope.ListAllReports = {!AllReports}
+            $scope.showtaxdifferently=true;
+            
+
+           angular.forEach($scope.ListAllReports, function(report) 
+            {
+                if(report.categoryName!=undefined && report.categoryName=="Tax Liability Reports")
+                {
+                    $scope.showtaxdifferently = false;
+                }
+                
+            });
+            
+            var url_string = $(location).attr("href");
+            var url = new URL(url_string);
+            $scope.showteam = url.searchParams.get("showteam");
+            $scope.accid = url.searchParams.get("accid");
+            $scope.id = url.searchParams.get("id");
+            $scope.admindriver = false;
+            $scope.admindriver = url.searchParams.get("admindriver");
+            if($scope.admindriver == undefined || $scope.admindriver == ''){
+                $scope.admindriver = false;
+            }
+        }]);
+    </script>
+    </head>
+    <body ng-app="reportModule" ng-controller="reportController" ng-cloak="true">
+         <header>
+            <div class="main-header sticky" id="myHeader">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-md-12 p-0">
+                            <nav class="navbar navbar-expand-md my-0 my-md-1 px-0">
+                                <a class="navbar-brand col-6 col-sm-6 col-md-3 col-lg-3 col-xl-3 px-0"  ng-show="!admindriver" href="/app/admindashboard?accid={{accid}}&id={{id}}&showteam={{showteam}}">
+                                    <img src="{!URLFOR($Resource.EmcCSS,'emc-design/assets/images/logo/mBurse-logo_rev.png')}" class="img-fluid" href="javascript:void(0)" alt="logo"/>
+                                </a>
+                                <a class="navbar-brand col-6 col-sm-6 col-md-3 col-lg-3 col-xl-3 px-0"  ng-show="admindriver" href="/app/admindriverdashboard?accid={{accid}}&id={{id}}&showteam={{showteam}}&admindriver=true">
+                                    <img src="{!URLFOR($Resource.EmcCSS,'emc-design/assets/images/logo/mBurse-logo_rev.png')}" class="img-fluid" href="javascript:void(0)" alt="logo"/>
+                                </a>
+
+                                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+                                    <span class="navbar-toggler-icon"><i class="fa fa-bars"></i></span>
+                                </button>
+                                <div class="collapse navbar-collapse flex-column col-12 col-sm-6 col-md-9 col-lg-9 col-xl-9 ml-3 ml-sm-0 ml-lg-0 align-items-end" id="collapsibleNavbar">
+                                    
+                                    <ul class="navbar-nav flex-row">
+                                        <li class="nav-item">
+                                             <a class="nav-link text-white" ng-show="!admindriver" href="/app/admindashboard?accid={{accid}}&id={{id}}&showteam={{showteam}}">Dashboard</a>
+                                             <a class="nav-link text-white" ng-show="admindriver" href="/app/admindriverdashboard?accid={{accid}}&id={{id}}&showteam={{showteam}}&admindriver=true">Dashboard</a>
+                                        </li>
+                                        <li class="nav-item">
+                                             <a class="nav-link text-white" ng-show="!admindriver" href="/app/roster?accid={{accid}}&id={{id}}&showteam={{showteam}}">Drivers</a>
+                                             <a class="nav-link text-white" ng-show="admindriver" href="/app/roster?accid={{accid}}&id={{id}}&showteam={{showteam}}&admindriver=true">Drivers</a>
+                                        </li>
+                                        <li class="nav-item active">
+                                             <a class="nav-link text-white" ng-show="!admindriver" href="/app/reportlist?accid={{accid}}&id={{id}}&showteam={{showteam}}">Reports</a>
+                                             <a class="nav-link text-white" ng-show="admindriver" href="/app/reportlist?accid={{accid}}&id={{id}}&showteam={{showteam}}&admindriver=true">Reports</a>
+                                        </li>
+                                        <li class="nav-item"> 
+                                            <a class="nav-link text-white" ng-show="admindriver" href="/app/driveradminmanagermydetail?accid={{accid}}&id={{id}}&showteam={{showteam}}&admindriver=true">My Details</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link text-white" href="/app/secur/logout.jsp">Logout</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <section class="container-fluid">
+            <div class="back-btn my-3">
+                <a ng-show="!admindriver" href="/app/admindashboard?accid={{accid}}&id={{id}}&showteam={{showteam}}"><i class="fas fa-chevron-left"></i> Back</a>
+                <a ng-show="admindriver" href="/app/admindriverdashboard?accid={{accid}}&id={{id}}&showteam={{showteam}}&admindriver=true"><i class="fas fa-chevron-left"></i> Back</a>
+            </div>
+            <div class="report-link">
+                <div ng-repeat="report in ListAllReports">                   
+                    <h3 class="mb-30 d-block">{{report.categoryName}}</h3>
+                    <div ng-repeat="singlereport in report.currentReports">
+                        <p><a ng-show="!admindriver" ng-href="/app/reportdetail?accid={{accid}}&id={{id}}&reportid={{singlereport.reportId}}&showteam={{showteam}}">{{singlereport.reportName}}</a></p>  
+                        <p><a ng-show="admindriver" ng-href="/app/reportdetail?accid={{accid}}&id={{id}}&reportid={{singlereport.reportId}}&showteam={{showteam}}&admindriver=true">{{singlereport.reportName}}</a></p>  
+                    </div>
+                    <div ng-if="report.categoryName=='Tax Liability Reports'">                        
+                        <p><a ng-show="!admindriver" href="/app/ReportofDriverCompliance?accid={{accid}}&showteam={{showteam}}&id={{id}}&reportid ='compliancecalculationreport'">Tax Liability</a></p>
+                        <p><a ng-show="admindriver" href="/app/ReportofDriverCompliance?accid={{accid}}&showteam={{showteam}}&id={{id}}&reportid ='compliancecalculationreport'&admindriver=true">Tax Liability</a></p>
+                    </div>                    
+                </div>
+                <div ng-show="showtaxdifferently">
+                    <h3 class="mb-30 d-block">Tax Liability Reports</h3>
+                    <p><a ng-show="!admindriver" href="/app/ReportofDriverCompliance?accid={{accid}}&showteam={{showteam}}&id={{id}}&reportid ='compliancecalculationreport'">Tax Liability</a></p>
+                    <p><a ng-show="admindriver" href="/app/ReportofDriverCompliance?accid={{accid}}&showteam={{showteam}}&id={{id}}&reportid ='compliancecalculationreport'&admindriver=true">Tax Liability</a></p>
+                </div>              
+            </div>
+        </section>
+        <apex:include pageName="EMC_Common_footer"/>
+    </body>
+</apex:page>

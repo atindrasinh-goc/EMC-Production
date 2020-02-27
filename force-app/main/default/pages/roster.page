@@ -1,0 +1,2449 @@
+<!--
+  @Page Name          : roster.page
+  @Description        : 
+  @Author             : ChangeMeIn@UserSettingsUnder.SFDoc
+  @Group              : 
+  @Last Modified By   : ChangeMeIn@UserSettingsUnder.SFDoc
+  @Last Modified On   : 7/26/2019, 7:16:44 PM
+  @Modification Log   : 
+  ==============================================================================
+  Ver         Date                     Author                 Modification
+  ==============================================================================
+  1.0    7/26/2019, 5:15:41 PM   ChangeMeIn@UserSettingsUnder.SFDoc     Initial Version
+-->
+<apex:page showHeader="false" title="Plan Participants" sidebar="false" action="{!getRedirected}" controller="RosterController" docType="html-5.0">
+    <head>
+        <apex:include pageName="EMC_Common_Head"/>
+        <script src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+        <script src="https://code.angularjs.org/1.4.0-beta.5/angular.js"></script>
+        <script src="https://gitcdn.github.io/bootstrap-toggle/2.1.0/js/bootstrap-toggle.min.js"></script>
+        
+        <!-- Toster link start-->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet" />
+        <!-- Toster link end-->
+
+        <script src="https://angular-ui.github.io/bootstrap/ui-bootstrap-tpls-0.9.0.js"></script>
+        
+        <!-- for excel download directive-->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.8.1/jszip.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.8.1/xlsx.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.8/FileSaver.min.js"></script>
+        <!-- for complete excel download directive-->
+
+       
+
+        <script src="{!URLFOR($Resource.modelJs)}"></script>
+        <script src="{!URLFOR($Resource.dirPagination)}"></script>
+
+        <style type="text/css">
+            .adminroster-driverstatus {
+                margin-bottom: 5px;
+            }
+            .spinner-background {
+                width: 100%; 
+                height:100%; 
+                background:#000; 
+                opacity: 0.4; 
+                top:0px; 
+                left:0px; 
+                position: fixed; 
+                z-index:1000000;
+            }
+
+            .spinner-load {
+                position:fixed;
+                top:49%;
+                left:49%;
+                z-index:1000000;
+            }
+
+            .uppercase {
+                text-transform:uppercase;
+                            }
+            .dropdown-menu {
+                z-index: 1060 !important;
+            }
+            
+            .loader {
+                border: 16px solid #f3f3f3;
+                border-radius: 50%;
+                border-top: 16px solid #3498db;
+                width: 120px;
+                height: 120px;
+                -webkit-animation: spin 2s linear infinite; /* Safari */
+                animation: spin 2s linear infinite;
+            }
+            .state-td {
+                max-width: 230px;
+            }
+
+            #modalofconfirmation {
+                opacity: 1 !important;
+            }
+            #modalbackdrop {
+                opacity: 0.7 !important;
+            }
+            .removeModelBackDrop{
+                display: none !important;
+            }
+
+            .modal-backdrop.fade 
+            {
+               opacity: 0.7 !important;
+            }
+            .fade:not(.show)
+            {
+                opacity: 1;
+            }
+
+            .modal-dialog 
+            {
+                z-index: 1057;
+            }
+            .toast-progress {
+                background-color: #000000 !important;
+            }
+            .toast-success {
+                background-color: #78bc42 !important;
+            }
+            .toast-error {
+                background-color: #FF0000 !important;
+            }
+            
+            #toast-container > div {
+                opacity: 5.8 !important;
+                border-radius: 3px 3px 3px 3px !important;
+                width: 100% !important;
+                margin: 10px;
+            }
+            .modal-body {
+                padding: 1rem !important;
+            }
+            span.tagquestion {
+                float: right;
+                position: absolute;
+                right: 15px;
+                top: -25px;
+            }
+            .tagquestion .fa-question:before {
+                color: #78bc42;
+                font-size: 12px;
+            }
+
+            span.tagquestion1 {
+                float: right;
+                right: 15px;
+                top: -25px;
+                margin-right: -5px;
+                cursor: pointer;
+            }
+            .tagquestion1 .fa-question:before {
+                color: #78bc42;
+                font-size: 18px;
+                padding-right: 40px !important;
+            }
+            .outer{
+                position:relative;
+                display:inline-block;
+            }
+
+            .outer button[disabled]{
+                position: relative;
+                z-index:-1;
+            }
+            .layer {
+                position: absolute;
+                top: 0;
+                left:0;
+                right:0;
+                bottom:0;
+            }
+           .pagination {
+                display: inline-block;
+                padding-left: 0;
+                margin: 20px 0;
+                border-radius: 4px;
+            }
+            .pagination>li {
+                display: inline;
+            }
+            .pagination>li>a, .pagination>li>span {
+                position: relative;
+                float: left;
+                padding: 6px 12px;
+                margin-left: -1px;
+                line-height: 1.42857143;
+                color: #78bc42;
+                text-decoration: none;
+                background-color: #f7f7f7;
+                border: 1px solid #ddd;
+            }
+            .pagination>li:first-child>a, .pagination>li:first-child>span {
+                margin-left: 0;
+                border-top-left-radius: 4px;
+                border-bottom-left-radius: 4px;
+            }
+            .pagination>.disabled>a, .pagination>.disabled>a:focus, .pagination>.disabled>a:hover, .pagination>.disabled>span, .pagination>.disabled>span:focus, .pagination>.disabled>span:hover {
+                color: #78bc42;
+                cursor: not-allowed;
+                background-color: #f7f7f7;
+                border-color: #ddd;
+            }
+            .pagination>.disabled>a, .pagination>.disabled>a:focus, .pagination>.disabled>a:hover, .pagination>.disabled>span, .pagination>.disabled>span:focus, .pagination>.disabled>span:hover {
+                color: #78bc42;
+                cursor: not-allowed;
+                background-color: #f7f7f7;
+                border-color: #ddd;
+            }
+            .pagination>.active>a, .pagination>.active>a:focus, .pagination>.active>a:hover, .pagination>.active>span, .pagination>.active>span:focus, .pagination>.active>span:hover {
+                z-index: 3;
+                color: #78bc42;
+                cursor: default;
+                background-color: #efefef;
+                border-color: #404b5b;
+            }
+
+            .w-100 {
+                cursor: pointer;
+            }
+            table.dataTable tbody th, table.dataTable tbody td 
+            {
+                padding: 5px 8px !important; 
+            }
+            .displaynone
+            {
+                display: none;
+            }
+            .downloadbtn
+            {
+                padding: .3rem .75rem !important;
+                font-size: 1rem !important;
+            }
+            .a-setcolor-pointer
+            {
+                color: #78bc42 !important;
+                text-decoration: underline !important;
+                cursor: pointer;
+            }
+            .a-hover-pointer{
+                cursor: pointer;
+            }
+            
+            input[type=text]:disabled {
+                background: #dddddd;
+            }
+            
+            .city-invalid {
+                border-color: #dc3545;
+                padding-right: 2.25rem;
+                background-repeat: no-repeat;
+                background-position: center right calc(2.25rem / 4);
+                background-size: calc(2.25rem / 2) calc(2.25rem / 2);
+                background-image: url(data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='%23dc354…%3e%3ccircle cy='3' r='.5'/%3e%3ccircle cx='3' cy='3' r='.5'/%3e%3c/svg%3E');
+
+            }
+             /* AI-000236, AI-000234 - Starts */
+             #filtericon{
+                padding: 10px;
+                right: 0;
+                position: absolute;
+                display: block;
+                z-index: 4;
+                cursor: pointer;
+            }
+            #example_filter {
+                    position: absolute;
+                    right: 24px;
+                    top: 0px;
+                }
+            .w-85{width:111% !important;}
+
+             #pills-loginadminroster-tab{
+                position: absolute !important;
+                right: 0px !important;
+                top: 0px !important;
+                background: #efefef;
+                } 
+                .nav-pills .nav-link.active{
+                    background: #78bc42;
+                    border-radius: 0px;
+                }
+                input.checkb1{
+                width:30px;
+                height:20px;
+                margin-top: 15px;
+                margin-left: -4px;
+            }
+            span.tagquestionLink{
+                position: absolute;
+                left: 29px;
+                top: -6px;
+            }
+            .tagquestionLink .fa-question:before {
+                color: #78bc42;
+                font-size: 12px;
+            }
+            @media screen and (max-width: 767px) and (min-width: 320px){
+                #example_filter{
+                    position: relative;
+                    right: 0px;
+                    top: 0px;
+                 }
+                .w-85{width:100% !important;}
+            }
+            @media screen and (max-width: 991px) and (min-width: 768px){
+                #example_filter{
+                    position: absolute;
+                    right: 0px;
+                    top: 2px;
+                 }
+                 .w-85{width:100% !important;}
+            }
+            
+        </style>
+        <script type="text/javascript">
+
+            var app = angular.module('rosterModule',['ui.bootstrap','angularUtils.directives.dirPagination']);
+            
+            /* Download excel file*/
+            app.directive('excelExport',function () {
+                return {
+                    restrict: 'A',
+                    scope: {
+                        fileName: "@",
+                        data: "&exportData"
+                },
+                replace: true,
+                template: '<button class="btn btn-primary float-right downloadbtn" ng-click="download()" >Export Excel <i class="fa fa-download" ></i></button>',/*style="padding: .3rem .75rem"*/
+                link: function (scope, element) {
+                    
+                    scope.download = function() {
+
+                        function datenum(v, date1904) {
+                            if(date1904) v+=1462;
+                            var epoch = Date.parse(v);
+                            return (epoch - new Date(Date.UTC(1899, 11, 30))) / (24 * 60 * 60 * 1000);
+                        };
+                        
+                        function getSheet(data, opts) {
+                            var data2 = [];
+                            var sheetdata2 = [];
+                            var sheetdata = [];
+                            sheetdata2.push(data[0]);
+                               
+                            for(var i=1;i<data.length;i++){ 
+                                data2.push(data[i]);
+                            }
+                               
+                            var sheetdata = data2.sort();
+                            sheetdata2 = [sheetdata2[0],...sheetdata];
+                            var ws = {};
+                            var range = {s: {c:10000000, r:10000000}, e: {c:0, r:0 }};
+                            for(var R = 0; R != sheetdata2.length; ++R) {
+                                for(var C = 0; C != sheetdata2[R].length; ++C) {
+                                    if(range.s.r > R) range.s.r = R;
+                                    if(range.s.c > C) range.s.c = C;
+                                    if(range.e.r < R) range.e.r = R;
+                                    if(range.e.c < C) range.e.c = C;
+                                    var cell = {v: sheetdata2[R][C] };
+                                    if(cell.v == null) continue;
+                                    var cell_ref = XLSX.utils.encode_cell({c:C,r:R});
+                                    
+                                    if(typeof cell.v === 'number') cell.t = 'n';
+                                    else if(typeof cell.v === 'boolean') cell.t = 'b';
+                                    else if(cell.v instanceof Date) {
+                                        cell.t = 'n'; cell.z = XLSX.SSF._table[14];
+                                        cell.v = datenum(cell.v);
+                                    }
+                                    else cell.t = 's';
+                                    
+                                    ws[cell_ref] = cell;
+                                }
+                            }
+                            if(range.s.c < 10000000) ws['!ref'] = XLSX.utils.encode_range(range);
+                            return ws;
+                        };
+                        
+                        function Workbook() {
+                            if(!(this instanceof Workbook)) return new Workbook();
+                            this.SheetNames = [];
+                            this.Sheets = {};
+                        }
+                         
+                        var wb = new Workbook(), ws = getSheet(scope.data());
+                        
+                        /* add worksheet to workbook */
+                        wb.SheetNames.push(scope.fileName);
+                        wb.Sheets[scope.fileName] = ws;
+                        var wbout = XLSX.write(wb, {bookType:'xlsx', bookSST:true, type: 'binary'});
+
+                        function s2ab(s) {
+                            var buf = new ArrayBuffer(s.length);
+                            var view = new Uint8Array(buf);
+                            for (var i=0; i!=s.length; ++i) view[i] = s.charCodeAt(i) & 0xFF;
+                            return buf;
+                        }
+                        
+                        saveAs(new Blob([s2ab(wbout)],{type:"application/octet-stream"}), scope.fileName+'.xlsx');
+                        
+                    };
+                }
+              };
+            });
+
+            /*For tooltip*/
+            app.directive('tooltip', function () {
+                return {
+                    restrict: "A",
+                    link: function(scope, element)
+                    {
+                        $(element).tooltip({
+                            html: 'true'
+                        });
+                    }
+                }
+            })
+
+            /* Model Directive Initalization For Driving States */
+            var EditDrivingStatesModel = function () {
+                this.visible = false;
+            };
+
+            EditDrivingStatesModel.prototype.open = function(emp,drivingstatesList) {
+                this.emp = emp;
+                this.drivingstatesList = drivingstatesList;
+                this.visible = true;
+            };
+            EditDrivingStatesModel.prototype.close = function() {
+                this.visible = false;
+            };
+
+            /* Model Directive For Driving States*/
+            app.directive('editDrivingStates', [function() {
+                return {
+                    restrict: 'EA',
+                    scope: {
+                        model: '='
+                    },
+                    link: function(scope, element, attributes) {
+                        scope.$watch('model.visible', function(newValue) {
+                            var modalElement = element.find('.modal');    
+                            modalElement.modal(newValue ? 'show' : 'hide');
+                            $("#drivingstate").tagsinput('destroy');
+                            $("#drivingstate").tagsinput('refresh');
+                            
+                        });
+
+                        $(element).tooltip({
+                            html: true
+                        });
+                        element.on('shown.bs.modal', function() {
+                            scope.$apply(function() {
+                                scope.model.visible = true;
+                            });
+                        });
+
+                        element.on('hidden.bs.modal', function() {
+                            scope.$apply(function() {
+                                scope.model.visible = false;
+                                scope.model.emp.drivingStates = $("#drivingstate").tagsinput('items');
+                            });
+                        });
+                    },
+                    template: '<div class="modal fade show" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content rounded-0"><button type="button" class="close popup-close-btn" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button><div class="modal-body"><form name="signup" class="form" novalidate="true"><div class="form-group-theme row mb-0"><label for="inputState" class="col-xl-5 col-lg-5 col-md-5 col-sm-5 col-form-label form-lable">Driving States <span class="tagquestion1"  data-toggle="tooltip" data-original-title="<b>Use State Abbreviations:</b><br/> {{model.drivingstatesList.join(\', \')}}" data-placement="right" data-html="true"><i class="fa fa-question"></i></span> </label> <div class="col-xl-7 col-lg-7 col-md-7 col-sm-7"><input ng-model="model.emp.drivingStates" id="drivingstate" type="text" placeholder="Enter Driving States" required="true" data-role="tagsinput" /><input ng-model="model.emp.drivingStates" id="drivingstatehidden" type="hidden" /></div></div></form></div></div></div></div></div>'
+                };
+            }]);
+
+
+            /* Model Directive Initalization For Deactivation Date */
+            var EditDeactivationDateModel = function () {
+                this.visible = false;
+            };
+
+            EditDeactivationDateModel.prototype.open = function(emp) {
+                this.emp = emp;
+                this.visible = true;
+            };
+            EditDeactivationDateModel.prototype.close = function() {
+                this.visible = false;
+            };
+
+            /* Model Directive For Deactivation Date*/
+            app.directive('editDeactivationDate', [function() {
+                return {
+                    restrict: 'E',
+                    scope: {
+                        model: '='
+                    },
+                    link: function(scope, element, attributes) {
+                        scope.$watch('model.visible', function(newValue) {
+                            var modalElement = element.find('.modal');
+                            modalElement.modal(newValue ? 'show' : 'hide');
+                        });
+
+                        element.on('shown.bs.modal', function() {
+                            scope.$apply(function() {
+                                scope.model.visible = true;
+                            });
+                        });
+
+                        element.on('hidden.bs.modal', function() {
+                            scope.$apply(function() {
+                                scope.model.visible = false;
+                            });
+                        });
+                    },
+                    template: '<div class="modal fade show" tabindex="-1" role="dialog"><div class="modal-dialog modal-dialog-centered"><div class="modal-content rounded-0"><button type="button" class="close popup-close-btn" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button><div class="modal-body"><form name="signup" class="form" novalidate="true"><div class="form-group-theme row"><label for="inputActivationdate:" class="col-xl-5 col-lg-5 col-md-5 col-sm-5 col-form-label form-lable">Deactivation Date:</label><div class="col-xl-7 col-lg-7 col-md-7 col-sm-7"><div class="input-group"><input id="adminroster-deactivationdatepicker" class="form-control rounded-0" placeholder="Select Deactivation Date" required="true" ng-model="model.emp.deactivaedDate" /><div class="input-group-prepend" id=""><span class="input-group-text"><i class="fas fa-calendar-alt"></i></span></div></div></div></div><div class="form-group-theme row"><label for="inputActivationdate:" class="col-xl-5 col-lg-5 col-md-5 col-sm-5 col-form-label form-lable">Last Pay Date:</label><div class="col-xl-7 col-lg-7 col-md-7 col-sm-7"><div class="input-group"><input type="text" id="adminroster-lastpaydatepicker" ng-model="model.emp.lastPayDate" class="form-control rounded-0" placeholder="Last Pay Date" required="true" /><div class="input-group-prepend" id=""><span class="input-group-text"><i class="fas fa-calendar-alt"></i></span></div></div></div></div><div class="form-group  justify-content-center text-center"><button type="button" class="btn btn-primary" data-dismiss="modal">Select</button><button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button></div></form></div></div></div></div>'
+                };
+            }]);
+            
+            app.controller('RosterController',['$scope','$modal', '$log','$compile','$timeout','$window','$filter',function($scope,$modal,$log,$compile,$timeout, $window,$filter){
+                var url_string = $(location).attr("href");
+                var url = new URL(url_string);
+                var valueofreport = '{!($Label.RoleAdminDriver)}';
+                $scope.id = url.searchParams.get("id");
+                $scope.accid = url.searchParams.get("accid");
+                $scope.showteam = url.searchParams.get("showteam");
+                $scope.admindriver = false;
+                $scope.admindriver = url.searchParams.get("admindriver");
+                if($scope.admindriver == undefined || $scope.admindriver == ''){
+                    $scope.admindriver = false;
+                }
+                $scope.drivingStatesList = {!DrivingStates};
+                $scope.accountId = '0013r00002EkwWMAAZ';
+                $scope.search="";
+                $scope.size = '10mb';
+                $scope.employeeslist = [];
+              
+                $scope.IsDisplay = false;
+                $scope.editDialog = new EditDrivingStatesModel();
+                $scope.editDateModel = new EditDeactivationDateModel();
+                $scope.backButton = false;
+               
+                var choosenfileType = '';
+
+                var beforeUpdateEmployees = [];
+               
+                /* Toaster Option */
+                //this.name = 'test';
+                this.setOptions = function() {
+                    toastr.options.positionClass = "toast-bottom-right";
+                    toastr.options.closeButton = true;
+                    toastr.options.progressBar = true;
+                //  toastr.options.hideMethod = 'noop';
+                };
+
+                $scope.importedFileErrors = {};
+                $scope.waiting = false;
+
+                this.setOptions();
+                this.clear = function() {
+                    toastr.clear();
+                };
+                /* Toaster Option Complete with clear funtion */
+
+                $scope.contactData = ''; // For Insert And update use
+                $scope.IsShow = false; // Use for Add tab Field show hide
+                $scope.IsVisible = true; // Visible for tab 
+
+                /* Remove State start*/
+                $scope.removeState = function(emp, index) {
+                    emp.drivingStates.splice(index, 1);           
+                }
+                /* Remove State End*/
+
+                $scope.loadDatePicker = function(deactivateDate, lastPayDate) {
+                    c(deactivateDate);
+                    loaddatepicker(deactivateDate, lastPayDate);
+                }
+                /* For Hide Tab*/
+                $scope.Hide = function(){
+                    $scope.IsVisible = false;
+                    $scope.IsVisibleLogin = false;
+                }
+                /* For Show Tab*/
+                $scope.Show = function(){
+                    $scope.IsVisible = true;
+                    $scope.backButton = false;
+                    $scope.IsVisibleLogin = false;
+                }
+
+                $scope.Showback = function(){
+                    location.reload();
+                    /*$scope.IsVisible = true;
+                    $scope.backButton = false;
+
+                    angular.element(document.querySelector("#pills-alldrivers-tab")).removeClass("active");
+                    angular.element(document.querySelector("#pills-alldrivers-tab-back")).removeClass("active");
+                    angular.element(document.querySelector("#pills-addadminroster-tab")).removeClass("active");
+                    
+                    angular.element(document.querySelector("#pills-alldrivers-tab")).addClass("active");
+                    angular.element(document.querySelector("#pills-alldrivers-tab-back")).addClass("active");*/
+                }
+
+                $scope.hideErrorModal = function() {
+                    $('.modal-backdrop').hide();
+                    $('.error-log').hide();
+                    $('.duplicate-log').hide();
+                }
+               
+                $scope.refreshEmployees = function() {
+                    Visualforce.remoting.Manager.invokeAction(
+                        '{!$RemoteAction.RosterController.getlistAllEmployees}',$scope.accid,$scope.id,
+                        function(result, event) {
+                            
+                            if(event.status && result != null) 
+                            {
+
+                                if(result != '' && result != undefined) {
+                                    
+                                        $scope.$apply(function(){
+                                        $scope.employeeslist = JSON.parse(result);
+                                        //formatDateForEmployeeList($scope.employeeslist);
+                                        $scope.addfordownload();
+                                    });
+                                }
+                                else
+                                {
+                                    $scope.$apply(function(){
+                                        $scope.employeeslist = [];
+                                        $scope.addfordownload();
+
+                                    });
+                                }
+                             //   console.log($scope.employeeslist);
+                               
+                            }
+                        },
+                        {escape: false}
+                    );
+
+                     
+                }
+
+                $scope.refreshEmployees();
+
+                $scope.addfordownload = function() {
+                 
+                    // EmployeeList Come from Controller
+                    var empToUpdate = formatShortDateForEmployeeList(angular.copy($scope.employeeslist));
+                    $scope.fileName = "My Employees";
+                    $scope.emplistfordownload = [];
+                    $scope.emplistfordownload.push(["First Name","Last name","EmployeeID","Email","City","State","Zip Code","Driving States","Activation Date","Deactivation Date","Role","Manager","Standard Vehicle","Fixed Amount","Compliance","Average Monthly Reimbursement","Average Monthly Mileage","App Version"]);
+                    $scope.employeeslist
+                    
+                    angular.forEach(empToUpdate, function (item, key) {
+                    
+                        $scope.emplistfordownload.push([item.firstName,item.lastName,item.employeeId,item.email,item.city,item.state,item.zipCode,item.drivingStates != null ? item.drivingStates.join(';'):'',item.activationDate,item.deactivaedDate,item.role,item.managerName,item.vehicalType,item.fixedamount,item.compliancestatus,item.totalreimbursement,item.monthlymileageLimit,item.appVersion]);
+                        
+                    });
+                }
+
+
+                /* File Upload Start*/
+                $scope.IsVisibleUpdatebtn = false;
+                $scope.filedata = '';
+                $scope.IsVisiblebtn = false;
+
+                $scope.loadDropfile = function(files) {
+                    $scope.IsVisiblebtn = true;
+                    var file = files[0]
+                    choosenfileType = files[0].type;
+                    
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        // handle onload
+                        $scope.filedata = reader.result;  
+                  
+                    };
+                    reader.readAsText(file);
+                    $scope.$apply(); 
+                }
+
+                $scope.file_changed = function(element) {
+
+                    $scope.IsVisiblebtn = true;
+                    var file = element.files[0];
+                    choosenfileType = file.type;
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        // handle onload
+                        $scope.filedata = reader.result;    
+                    };
+                    //reader.readAsDataURL(file);
+                    reader.readAsText(file);
+                    $scope.$apply();
+                };
+                
+                /* MM/dd/yy format start*/
+                $scope.formateDate = function(dateString){
+                    if(dateString != '' && dateString != null) {
+                        let datesplit = dateString.split('/');
+                        if(datesplit[2].length > 2)
+                            return (datesplit[0].padStart(2,'0') + '/' + datesplit[1].padStart(2,'0') + '/' +  datesplit[2].substr(2,3));
+                    }
+                    
+                    return dateString;
+                }
+                 /* MM/dd/yy format End*/
+
+                /* full formate Start*/
+                formatFulllDateForEmployeeList = function(records){
+                   
+                    angular.forEach(records, function(value, key){
+                        value.deactivaedDate = fullDateFormat(value.deactivaedDate);
+                        value.lastPayDate = fullDateFormat(value.lastPayDate);
+                        value.activationDate = fullDateFormat(value.activationDate);
+                        value.addedDate = fullDateFormat(value.addedDate);
+                    });
+
+                    return records;
+                }
+                /* full formate End*/
+
+                /* full formate Start*/
+                formatShortDateForEmployeeList = function(records){
+                    angular.forEach(records, function(value, key){
+                        value.deactivaedDate = $scope.formateDate(value.deactivaedDate);
+                        value.lastPayDate = $scope.formateDate(value.lastPayDate);
+                        value.activationDate = $scope.formateDate(value.activationDate);
+                        value.addedDate = $scope.formateDate(value.addedDate);
+                    });
+
+                    return records;
+                }
+                /* full formate End*/
+
+                /* MM/dd/yyyy format Start*/
+                function fullDateFormat(strDate) {
+                    if(strDate != '' && strDate != null && strDate != undefined) {
+                        let datesplit = strDate.split('/');
+                        let year = (new Date()).getFullYear();
+                        if(datesplit[2].length == 2)
+                            return (datesplit[0] + '/' + datesplit[1] + '/' + year.toString().substr(0,2) +  datesplit[2]);
+                    }
+                    return strDate;
+                }
+                /* MM/dd/yyyy format End*/
+
+                $scope.uploadFile = function(event) {
+
+                    let filetype = '.csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel,text/csv';
+                    if(filetype.indexOf(choosenfileType) == -1) {
+                        toastr.error('Please Choose Proper File Format.');
+                        event.stopPropagation();
+                        event.preventDefault();
+                        return
+                    }
+
+                   // console.log('choosenfileType'+choosenfileType);
+                    
+                    Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.RosterController.readFromFile}',$scope.filedata,$scope.accid,
+                    function(result, event){
+                        if(event.status) {
+                            let resultArray = result.split('::');
+                        
+                            if(resultArray[0] == 'Error'){
+                                
+                                if( resultArray.length > 2)  {
+                                    $scope.importedFileErrors = JSON.parse(resultArray[3]);
+                                    $scope.$apply();                                      
+                                    $('.duplicate-log').show();
+                                    toastr.error(resultArray[1]);
+                                } else {
+                                    $scope.importedFileErrors = JSON.parse(resultArray[1]);
+                                    $scope.$apply();
+                                    $('.error-log').show();
+                                }
+                                $('.modal-backdrop').show();
+                                
+                            } else {
+                                toastr.success(resultArray[1]);
+                                
+                                if( resultArray.length > 2)  {
+                                    $scope.importedFileErrors = JSON.parse(resultArray[3]);
+                                    $scope.$apply();                                      
+                                    $('.duplicate-log').show();
+                                } else {
+                                    $('.modal-backdrop').hide();
+                                }
+                            } 
+                            $('#adminrosterImportProcess').modal('toggle'); 
+                            document.getElementById('file').value = '';
+                            $scope.IsVisiblebtn = false;
+                        }
+                    },
+                    {escape: false}
+                    );
+                };
+                /* File Upload Complete*/
+
+                /* New contact Start*/
+                function obj_contactnew() {
+                    refreshForm();
+                    let dateAndVehicleList = {!PickListValuesIntoList}
+                    let tempaccdate = dateAndVehicleList[0];
+                    let tempdt = new Date(tempaccdate);
+                    let d = $filter('date')(tempdt, "MM/dd/yy")
+                    var splicevehiclelist = dateAndVehicleList.splice(1,1);
+                   
+                    if(splicevehiclelist.length > 0) {
+                        $scope.vehiclelist = splicevehiclelist[0].split(";");    
+                    }
+                    else
+                    {
+                        $scope.vehiclelist = [];
+                    }
+
+                    return contact  = {
+                        //activationDate : d,
+                        role : '',
+                        managerId : '',
+                        vehicalType : '',
+                        managerName : '',
+                       
+                    }
+                }
+
+              
+                
+                /* New contact End*/
+                /* Field Edit Funtion Start*/
+                $scope.empupdatelist = [];
+                $scope.selectedRow = null; 
+                $scope.selectedManager = function(event,emplist){
+                    var name = event.target.options[event.target.options.selectedIndex].text;
+                    emplist.managerName = name;
+                  
+                }
+              
+                $scope.edit = function(emp,userid) {
+                    $scope.selectedRow = userid;
+                    $scope.IsVisibleUpdatebtn = true;
+                    $scope.managerlist = {!AllManagers}
+                    $scope.managerlist.sort(function(a, b){
+                        var nameA = a.Name.toLowerCase(), nameB = b.Name.toLowerCase();
+                        if (nameA < nameB){ //sort string ascending
+                            return -1;
+                        }else if (nameA > nameB){
+                            return 1;
+                        }else{
+                            return 0; //default return value (no sorting)
+                        }
+                    })
+                    
+                    $scope.rolelist = {!Roles}
+                    //console.log($scope.rolelist);
+                    $scope.recordfoundindex=-1;
+                    if(beforeUpdateEmployees.length == 0)
+                        beforeUpdateEmployees = angular.copy($scope.employeeslist);
+
+                    for (i = 0; i < $scope.empupdatelist.length; i++) 
+                    {
+                        if($scope.empupdatelist[i].userid == emp.userid)
+                        {
+                            $scope.recordfoundindex = i;
+                            break;
+                        }
+                    }
+                    if($scope.recordfoundindex!=-1)
+                    {
+                        $scope.empupdatelist.remove($scope.recordfoundindex);   
+                    }
+                    
+                    else
+                    {
+                        $scope.empupdatelist.push(emp);
+                    }
+                }
+                /* Field Edit Funtion Complete*/
+              
+                /*Cancel update Start */
+                $scope.cancelUpdate = function() {
+                    $('#spinner').show();
+                    angular.forEach(beforeUpdateEmployees, function(employee){
+                         employee.iseditable = false;
+                    });
+                    
+                    $scope.IsVisibleUpdatebtn = false;
+                    $scope.employeeslist = angular.copy(beforeUpdateEmployees);
+                    $('#spinner').hide();
+                    
+                }
+                /*Cancel update End */
+             
+                /* Record Update Start*/
+                $scope.update = function(form) {
+                    $('#spinner').show();
+                    var invalid = false;
+                    let count = 0;
+                    
+                    for (i = 0; i < $scope.empupdatelist.length; i++) 
+                    {
+                        if(form['email_' + $scope.empupdatelist[i].userid ].$invalid
+                            || form['role_' + $scope.empupdatelist[i].userid ].$invalid
+                            || form['manager_' + $scope.empupdatelist[i].userid ].$invalid
+                            || form['zip_' + $scope.empupdatelist[i].userid ].$invalid)
+                        {
+                            invalid = true;
+                            if(form['email_' + $scope.empupdatelist[i].userid ].$invalid)
+                                count ++;
+                            if(form['role_' + $scope.empupdatelist[i].userid ].$invalid)
+                                count ++;
+                            if(form['manager_' + $scope.empupdatelist[i].userid ].$invalid)
+                                count ++;
+                            if(form['zip_' + $scope.empupdatelist[i].userid ].$invalid)
+                                count ++;
+                            if(count > 1)
+                                break;
+                        }
+                    }
+
+                    c(count);
+                    if(invalid){
+                        $('#spinner').hide();
+                        if(count > 1)
+                            $scope.showToast('Please Complete Required Fields.');
+                        else
+                            $scope.showToast('Please Complete Required Field.');
+                        return;
+                    }
+
+                    var empToUpdate = formatFulllDateForEmployeeList(angular.copy($scope.empupdatelist));
+                    Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.RosterController.editInlineNewEmployee}',JSON.stringify(empToUpdate),$scope.accid,$scope.id,
+                    function(result, event){     
+                        
+                        if(event.status && result != null){
+                          
+                            if(result != '') {
+                                beforeUpdateEmployees = [];
+                                
+                               
+                                if($scope.empupdatelist.length > 1) {
+                                    toastr.success('Records Updated Successfully.');
+                                } else {
+                                    toastr.success('Record Updated Successfully.');
+                                }
+                                angular.forEach($scope.empupdatelist,function(employee){
+                                   employee.iseditable = false;
+                                });
+
+                             //   $scope.empupdatelist = [];
+                                $scope.IsVisibleUpdatebtn = false;
+                                $scope.selectedRow = '';
+                                $scope.$apply();
+                            }
+                            else
+                            {
+                                $scope.employeeslist = [];
+                                if($scope.empupdatelist.length > 1) {
+                                    toastr.success('Records Updated Successfully.');
+                                } else {
+                                    toastr.success('Record Updated Successfully.');
+                                }
+                                $scope.empupdatelist = [];
+                                $scope.IsVisibleUpdatebtn = false;
+                                $scope.selectedRow = '';
+                                $scope.$apply();
+                             
+                            }
+
+                            refreshForm();
+                           
+                            $('#spinner').hide();
+                        } else {
+                            $('#spinner').hide();
+                        }
+                    },
+                    {escape: false}
+                    );
+                };
+                /* Record Update Complete*/
+
+               
+                function refreshForm() {
+                  
+                    var forms = document.getElementsByClassName('needs-validation');
+                    angular.forEach(forms, function(form){
+                        $(form).removeClass('was-validated');
+                    })
+
+                    
+                }
+               
+                /* Export Excel Tab Hide */
+                $scope.tabs = [{active: true}, {active: false}, {active: false},{active: false}];
+                $scope.showForm = function(){
+                    $('#spinner').show();
+                    $scope.relatedcitylist = [];
+                    $scope.contactData = obj_contactnew();
+                    $scope.employeesList = [];
+                    $scope.contactData.addedDate = $filter('date')(new Date(), "MM/dd/yy")
+                    $("#drivingstatenew").tagsinput('removeAll');
+                    $scope.IsShow = false;
+                    $scope.managerlist = {!AllManagers}
+                    $scope.managerlist.sort(function(a, b){
+                        var nameA = a.Name.toLowerCase(), nameB = b.Name.toLowerCase();
+                        if (nameA < nameB){ //sort string ascending
+                            return -1;
+                        }else if (nameA > nameB){
+                            return 1;
+                        }else {
+                            return 0; //default return value (no sorting)
+                        }
+                    })
+                    $scope.rolelist = {!Roles}
+                    console.log($scope.rolelist);
+                    $scope.tabs[1].active = true;
+                    angular.element(document.querySelector("#pills-alldrivers-tab")).removeClass("active");
+                    angular.element(document.querySelector("#pills-alldrivers-tab-back")).removeClass("active");
+                    angular.element(document.querySelector("#pills-importadminroster-tab")).removeClass("active");
+                    angular.element(document.querySelector("#pills-addadminroster-tab")).addClass(" active");
+                    angular.element(document.querySelector("#form1")).removeClass("is-invalid");
+                    $('#spinner').hide();
+                };
+                $scope.optionshowObj = {isshow:false};
+                $scope.showcitycountry = function(zipcode,role){
+                    if(role == 'Admin' || role == 'Manager') {
+                        $scope.stateabrivationObj.drivingstatefordriver == false;
+                    }
+                    if(role == 'Driver' || role == 'Driver/Manager' || role == valueofreport) {
+                        $scope.stateabrivationObj.drivingstatefordriver == false;
+                    }
+                    c('zipcode:--'+zipcode+'role:--'+role);
+                   // console.log('show:--'+$scope.stateabrivationObj.drivingstatefordriver);
+                    if(zipcode != undefined && zipcode != '' && zipcode != null){
+                        $('#spinner').show();
+                        Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.RosterController.getCountryStateCity}',zipcode,
+                            function(result, event){                        
+                                if(event.status && result != null && result != '') {
+                                    let address = JSON.parse(result);
+                                    $scope.relatedcitylist = [];
+                                    
+                                    if($scope.stateabrivationObj.drivingstatefordriver == true) {
+                                        for(var i = 0; i< $scope.drivingStatesList.length; i++) {
+                                            if($scope.drivingStatesList[i] == $scope.contactData.state) {
+                                                $('#drivingstatenew').tagsinput('remove',$scope.contactData.state);
+                                            }
+                                        }
+                                    }
+                                    $scope.$apply(function(){
+                                        $scope.contactData.state = '';
+                                        $scope.contactData.city = '';
+                                        angular.forEach(address, function(item) {
+                                            $scope.relatedcitylist.push(item.City__c);
+                                            $scope.contactData.state = item.Abbreviation__c;
+                                        });
+                                    })
+                                    if($scope.stateabrivationObj.drivingstatefordriver == true) {
+                                        if($scope.contactData.state != undefined || $scope.contactData.state != '')
+                                        {
+                                            $scope.contactData.drivingStates = $scope.contactData.state;
+                                            $('#drivingstatenew').tagsinput('add',$scope.contactData.state);
+                                        }
+                                    }
+                                    $('#spinner').hide();
+                                }
+                                else{
+                                    $('#spinner').hide();
+                                    toastr.error('Please insert valid zipcode.');
+                                }
+                            },
+                            {escape: false}
+                        );
+                    }
+                    if(zipcode == '' || zipcode == undefined || zipcode == null) {
+                        if($scope.stateabrivationObj.drivingstatefordriver == true) {
+                            for(var i = 0; i< $scope.drivingStatesList.length; i++) {
+                                if($scope.drivingStatesList[i] == $scope.contactData.state) {
+                                    $('#drivingstatenew').tagsinput('remove',$scope.contactData.state);
+                                }
+                            }
+                        }
+                        $scope.contactData.state = '';
+                        $scope.relatedcitylist = [];
+                        $scope.contactData.city = '';
+                    }
+                    
+                }
+
+                $scope.showcitycountryedit = function(zipcode,role){
+                    
+                    if(Array.isArray($scope.contactData)){
+                        if(!$scope.contactData[0].zipCode||$scope.contactData[0].zipCode.length<5){
+                            return;
+                        }
+                    }else{
+                        if(!Array.isArray($scope.contactData) && ($scope.contactData.zipCode && $scope.contactData.zipCode.length<5)){
+                            return;
+                        }
+                    }                    
+                    c('zipcode:--'+zipcode+'role:--'+role);
+                    if(role == 'Admin' || role == 'Manager') {
+                        $scope.stateabrivationObj.drivingstatefordriver == false;
+                    }
+                    if(role == 'Driver' || role == 'Driver/Manager' || role == valueofreport) {
+                        $scope.stateabrivationObj.drivingstatefordriver == false;
+                    }
+                    if(zipcode != undefined && zipcode != '' && zipcode != null){
+                        $('#spinner').show();
+                        Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.RosterController.getCountryStateCity}',zipcode,
+                            function(result, event){      
+                                
+                                if(event.status && result != null && result != '') {
+                                    let address = JSON.parse(result);
+                                    $scope.relatedcitylist = [];
+                                    $scope.$apply(function(){
+                                        
+                                        c('remove drivingStates:--'+$scope.contactData[0].state);
+                                        if($scope.stateabrivationObj.drivingstatefordriver == true ) {
+                                            for(var i = 0; i< $scope.drivingStatesList.length; i++) {
+                                                if($scope.drivingStatesList[i] == $scope.contactData[0].state) {
+                                                    $('#drivingstateContact').tagsinput('remove',$scope.contactData[0].state);
+                                                }
+                                            }
+                                        }
+                                        //$scope.contactData[0].state = '';
+                                        //$scope.contactData[0].city = '';
+                                        
+                                       
+                                        angular.forEach(address, function(item) {
+                                            $scope.relatedcitylist.push(item.City__c);
+                                            $scope.contactData[0].state = item.Abbreviation__c;
+                                        });
+                                    })
+                                    if($scope.stateabrivationObj.drivingstatefordriver == true) {
+                                        if($scope.contactData[0].state != undefined || $scope.contactData[0].state != '')
+                                        {
+                                            $scope.contactData[0].drivingStates = $scope.contactData[0].state;   
+                                            $('#drivingstateContact').tagsinput('add',$scope.contactData[0].state);
+                                        }
+                                    }
+                                    $('#spinner').hide();
+                                }
+                                else{
+                                    $('#spinner').hide();
+                                    toastr.error('Please insert valid zipcode.');
+                                }
+                            },
+                            {escape: false}
+                        );
+                    }
+                    
+                    if(zipcode == '' || zipcode == undefined || zipcode == null) {
+                        if($scope.stateabrivationObj.drivingstatefordriver == true) {
+                            for(var i = 0; i< $scope.drivingStatesList.length; i++) {
+                                if($scope.drivingStatesList[i] == $scope.contactData[0].state) {
+                                    $('#drivingstateContact').tagsinput('remove',$scope.contactData[0].state);
+                                }
+                            }
+                        }
+                        $scope.relatedcitylist = [];
+                        $scope.contactData[0].city = '';
+                        $scope.contactData[0].state = '';
+                        $('#spinner').hide();
+                    }
+                }
+                $scope.stateabrivationObj = {drivingstatefordriver : false};
+                $scope.rolewisevalidation = function(role) {
+                    if(role == 'Driver' || role == 'Driver/Manager' || role == 'Manager') {
+                        $scope.showmanagervalidation = true;
+                    }
+                  //  console.log('role:--'+role);
+                    if(role == 'Driver' || role == 'Driver/Manager' ) {
+                        $scope.showvalidation = true;
+                        /*$scope.showrequiredfield = true;*/
+                     //    console.log('role:--'+role);
+
+                        $scope.stateabrivationObj.drivingstatefordriver = true;
+                      //  console.log('change:--'+$scope.stateabrivationObj.drivingstatefordriver);
+                    }
+                    if(role == 'Admin' || role == 'Manager')
+                    {
+                      //  console.log('role:--'+role);
+                        $scope.showvalidation = false;
+                        /*$scope.showrequiredfield = false;*/
+                        $scope.stateabrivationObj.drivingstatefordriver = false;
+                    }
+
+                    if(role == 'Admin' ){
+                        $scope.showmanagervalidation = false;
+                    }
+                }
+                /* Value Pass in Add(Form)tab */
+                $scope.passData = function(empId)
+                {   
+                  
+                    $('#spinner').show();
+                    $scope.IsShow = true;
+                    $scope.managerlist = {!AllManagers}
+                    $scope.managerlist.sort(function(a, b){
+                        var nameA = a.Name.toLowerCase(), nameB = b.Name.toLowerCase();
+                        if (nameA < nameB){ //sort string ascending
+                            return -1;
+                        }else if (nameA > nameB){
+                            return 1;
+                        }else{
+                            return 0; //default return value (no sorting)
+                        }
+                    })
+
+                    $scope.rolelist = {!Roles}
+                    $scope.Hide();
+                    angular.element(document.querySelector("#pills-alldrivers-tab")).removeClass("active");
+                    angular.element(document.querySelector("#pills-alldrivers-tab-back")).removeClass("active");
+                    angular.element(document.querySelector("#pills-addadminroster-tab")).addClass(" active");
+                    $scope.tabs[1].active = true;
+
+                    $scope.editUserID = empId.userid;
+                    let dateAndVehicleList = {!PickListValuesIntoList}
+                    let tempaccdate = dateAndVehicleList[0];
+                    let tempdt = new Date(tempaccdate);
+                    let d = $filter('date')(tempdt, "MM/dd/yy")
+                    var splicevehiclelist = dateAndVehicleList.splice(1,1);
+                    $scope.vehiclelist = splicevehiclelist[0].split(";");
+                    Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.RosterController.editEmployeeDetails}',$scope.editUserID,
+                        function(result, event){
+                           
+                            $scope.contactData = [];
+                            $scope.relatedcitylist = [];
+                            /*$scope.statelist = [];*/
+                            $scope.contactData = JSON.parse(result);
+                            // if(empId){
+                            //     angular.forEach($scope.contactData,function(item){
+                            //         item.managerName = empId.managerName;
+                            //         item.managerId = empId.managerId;
+                            // });
+                       // }
+                           
+                            angular.forEach($scope.contactData,function(item){
+                                c('item:--'+item.role);
+                            
+                                if(item.addedDate != null && item.addedDate != '') {
+                                    item.addedDate = $scope.formateDate(item.addedDate);
+                                }
+                                else {
+                                    item.addedDate = $filter('date')(new Date(), "MM/dd/yy");
+                                }
+
+                                if(item.activationDate != null && item.activationDate != ''){
+                                    item.activationDate = $scope.formateDate(item.activationDate);
+                                }
+                                if(item.city != null && item.city != ''){
+                                    $scope.relatedcitylist.push(item.city);
+                                }
+                                if(item.role == 'Admin' || item.role == 'Manager'){
+                                    $scope.showrequiredfield = false;
+                                }
+                                if(item.role == 'Driver/Manager' || item.role == 'Driver' || item.role == valueofreport){
+                                    $scope.showrequiredfield = true;
+                                }
+                            });
+                            
+                            $scope.showcitycountryedit($scope.contactData[0].zipCode,$scope.contactData[0].role)
+                            $('#spinner').hide();
+                            $scope.backButton = true;
+                            $scope.$apply();
+                            $("#drivingstateContact").tagsinput('destroy');
+                            $("#drivingstateContact").tagsinput('refresh');
+
+                        }, {escape: false}                 
+                    );
+                }
+
+               
+                
+                /* Contact Insert Before Check Is already available or not */
+                $scope.createUpdateContact = function(con,elementId, sourceId, suffix, form, update) 
+                {
+                    
+                    $('#spinner').show();  
+                  //  console.log('city:--'+JSON.stringify(con.city));
+                 //   console.log('vehicalType:--'+JSON.stringify(con.vehicalType));
+                    if(con.role == 'Driver' || con.role == 'Driver/Manager' || con.role == valueofreport) {
+                        $scope.showrequiredfield = true;
+                        $scope.showvalidation = true;
+                    }
+                   
+                    if(con.role == 'Driver' || con.role == 'Driver/Manager' || con.role == 'Manager' || con.role == valueofreport)
+                    {
+                        $scope.showmanagervalidation = true;
+                    }
+                    if(con.role == 'Admin') /*Mobio*/
+                    {
+                        $scope.showmanagervalidation = false;
+                    }
+
+                    if(con.role == 'Admin' || con.role == 'Manager')
+                    {
+                        $scope.showrequiredfield = false;
+                        $scope.showvalidation = false;
+                    }
+
+                   /* if($scope.showrequiredfield == true) {
+                        if(con.city == '') {
+                            angular.element(document.querySelector("#city")).addClass("city-invalid");
+                            angular.element(document.querySelector("#city")).addClass("city-invalid");
+                        }
+                    }*/
+                    $scope.addfilds = '';
+                    document.getElementById(elementId).value = $("#" + sourceId).tagsinput('items');
+                    $scope.cont = con;
+                    con.drivingStates = $("#" + sourceId).tagsinput('items');
+                    let inputtovalidate;
+                    if(con.role == 'Driver' || con.role == 'Driver/Manager'|| con.role == valueofreport ){
+                        inputtovalidate = ["firstname","lastname","email", "city", "state","zip", "role", "manager", "vehicalType", "activedate"];
+                    }
+                    if(con.role == 'Admin' || con.role == 'Manager'){
+                        inputtovalidate = ["firstname","lastname","email", "role", "activedate"];
+                    }
+                    
+                    let count = 0;
+                    angular.forEach(inputtovalidate, function(item){
+                        if(form[ item + suffix].$invalid) {
+                            count++;
+                            if(count < 6)
+                                $scope.addfilds = $scope.addfilds + ' ' + item;
+                            else
+                                $scope.addfilds = '';
+                        }   
+                    });
+                    if(count > 0) {
+                        $('#spinner').hide();
+                        
+                        let message = count > 1 ? 'Please complete '+$scope.addfilds+' required fields.' : 'Please complete required field.';
+                        toastr.error(message);
+                        return;
+                    }
+
+                    if(con == "" || con.length == 0){
+                        toastr.error('Please fill the required field');
+                        $('#spinner').hide();
+                    }
+                    else
+                    {
+                        if((con.firstName != '' && con.firstName != undefined && con.firstName != null) && (con.lastName != '' && con.lastName != undefined && con.lastName != null) && (con.email != '' && con.email != undefined && con.email != null) && (con.role != '' && con.role != undefined && con.role != null)){
+                            if(con.role == 'Driver' || con.role == 'Driver/Manager' || con.role == valueofreport){
+                                if((con.zipCode != '' && con.zipCode != undefined && con.zipCode != null) && (con.city!= '' && con.city != undefined && con.city != null) && (con.state != '' && con.state != undefined && con.state != null) && (con.activationDate != '' && con.activationDate != undefined && con.activationDate != null) && (con.addedDate != '' && con.addedDate != undefined && con.addedDate != null) && (con.role != '' && con.role != undefined && con.role != null) && (con.managerId != '' && con.managerId != undefined && con.managerId != null) && (con.vehicalType != '' && con.vehicalType != undefined && con.vehicalType != null)) 
+                                {
+                                    $scope.showrequiredfield = true;
+                                    $scope.editUserEmail = con.email;
+                                    $scope.conForUpdateInsertfordateformate = [];
+                                    $scope.conForUpdateInsertfordateformate.push(con);  
+                                    $scope.contactListForUpdateInsert = '';
+                                    $scope.contactListForUpdateInsert = formatFulllDateForEmployeeList(angular.copy($scope.conForUpdateInsertfordateformate));    
+                                    /*c('Before:--'+JSON.stringify($scope.contactListForUpdateInsert));*/
+
+                                    Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.RosterController.getContactByEmailAddress}',$scope.editUserEmail,
+                                    function(result, event){
+                                        
+                                        if(event.status && result !=null)
+                                        {
+                                            if(result != "Fail")
+                                            {
+                                             //   console.log("response of getContactByEmailAddress Not Fail");
+                                               
+                                                $scope.contactListForUpdateInsert.userid = result;
+                                                
+                                                Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.RosterController.manageEmployee}',JSON.stringify($scope.contactListForUpdateInsert),$scope.accid,$scope.id,
+                                                function(result, event){
+                                                    
+                                                    if(event.status && result != "Fail")
+                                                    {
+                                                  
+                                                     //   console.log("response of manageEmployee Not Fail");
+                                                      //  console.log(result);
+                                                        if(update)
+                                                            $scope.contactData[0].userid = $scope.contactListForUpdateInsert.userid;
+                                                        else
+                                                            $scope.contactData.userid = $scope.contactListForUpdateInsert.userid;
+                                                        $scope.employeeslist = JSON.parse(result); 
+                                                        
+                                                        $scope.employeesList = angular.copy($scope.employeeslist);
+                                                      //  console.log($scope.employeesList);
+                                                        $scope.updateContact();
+                                                        $scope.$apply();
+                                                    }
+                                                    else
+                                                    {
+                                                        $('#spinner').hide();
+                                                        toastr.error('Something went wrong.');
+                                                    }
+                                                },
+                                                {escape: false}                 
+                                                );
+                                            }
+                                            else
+                                            {
+                                              //  console.log("response of getContactByEmailAddress");
+                                                
+                                                Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.RosterController.manageEmployee}',JSON.stringify($scope.contactListForUpdateInsert),$scope.accid,$scope.id,
+                                                    function(result, event){
+                                                   
+                                                        if(event.status && result != null) {
+                                                        
+                                                            if(result != "Fail")
+                                                            {
+                                                                $scope.IsShow = false;
+                                                                $scope.employeeslist = JSON.parse(result); 
+                                                                $scope.employeesList = angular.copy($scope.employeeslist);
+                                                                if($scope.contactListForUpdateInsert.userid != undefined && $scope.contactListForUpdateInsert.userid != '')
+                                                                    $scope.updateContact();
+                                                                else
+                                                                    $scope.insertContact(form);
+
+                                                                let conData = update ? $scope.contactData[0] : $scope.contactData;
+                                                                angular.forEach($scope.employeeslist, function(value, key){
+                                                                  
+                                                                    if(value.email === conData.email) {
+                                                                        if(update)
+                                                                            $scope.contactData[0].userid = value.userid;
+                                                                        else
+                                                                            $scope.contactData.userid = value.userid;
+                                                                    }
+                                                                });
+                                                                $('#spinner').hide();
+                                                                $scope.contactData  = {};
+                                                                $scope.contactData  = obj_contactnew();
+                                                                $scope.contactData.addedDate = $filter('date')(new Date(), "MM/dd/yy");
+                                                                form.$setPristine();
+                                                                form.$setValidity();
+                                                                $scope.$apply();
+                                                            }
+                                                            else
+                                                            {
+                                                                $('#spinner').hide();
+                                                                toastr.error('Something went wrong.');    
+                                                            }
+                                                        } else {
+                                                            $('#spinner').hide();
+                                                            toastr.error('Something went wrong.');
+                                                        }
+                                                    },
+                                                    {escape: false}                 
+                                                );
+                                            } 
+                                        } else{
+                                            $('#spinner').hide();
+                                            toastr.error('Something went wrong. ');
+                                        }
+                                    },{escape: false});
+                                }
+                                else
+                                {
+                                    $('#spinner').hide();
+                                    toastr.error('Please fill the required field ');
+                                }
+                            }
+                            if(con.role == 'Admin' || con.role == 'Manager'){
+                                if((con.activationDate != '' && con.activationDate != undefined && con.activationDate != null) && (con.addedDate != '' && con.addedDate != undefined && con.addedDate != null) && (con.role != '' && con.role != undefined && con.role != null) ) {
+                                    $scope.showmanagervalidation = false;
+                                    $scope.showrequiredfield = false;
+                                    $scope.editUserEmail = con.email;
+                                    $scope.conForUpdateInsertfordateformate = [];
+                                    $scope.conForUpdateInsertfordateformate.push(con);  
+                                    $scope.contactListForUpdateInsert = '';
+                                    $scope.contactListForUpdateInsert = formatFulllDateForEmployeeList(angular.copy($scope.conForUpdateInsertfordateformate));    
+                                    Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.RosterController.getContactByEmailAddress}',$scope.editUserEmail,
+                                    function(result, event){
+                                        if(event.status && result !=null) {
+                                            if(result != "Fail")
+                                            {
+                                                $scope.contactListForUpdateInsert.userid = result;
+                                                Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.RosterController.manageEmployee}',JSON.stringify($scope.contactListForUpdateInsert),$scope.accid,$scope.id,
+                                                function(result, event){
+                                                    
+                                                    if(event.status && result != "Fail")
+                                                    {
+                                                        if(update)
+                                                            $scope.contactData[0].userid = $scope.contactListForUpdateInsert.userid;
+                                                        else
+                                                            $scope.contactData.userid = $scope.contactListForUpdateInsert.userid;
+                                                        $scope.employeeslist = JSON.parse(result); 
+                                                        $scope.updateContact();
+                                                        $scope.$apply();
+                                                    }
+                                                    else
+                                                    {   $('#spinner').hide();
+                                                        toastr.error('Something went wrong.');
+                                                    }
+                                                },
+                                                {escape: false}                 
+                                                );
+                                            }
+                                            else
+                                            {
+                                                Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.RosterController.manageEmployee}',JSON.stringify($scope.contactListForUpdateInsert),$scope.accid,$scope.id,
+                                                    function(result, event){
+                                                        if(event.status && result != null) {
+                                                            if(result != "Fail")
+                                                            {
+                                                                $scope.IsShow = false;
+                                                                $scope.employeeslist = JSON.parse(result); 
+                                                                if($scope.contactListForUpdateInsert.userid != undefined && $scope.contactListForUpdateInsert.userid != '')
+                                                                    $scope.updateContact();
+                                                                else
+                                                                    $scope.insertContact(form);
+
+                                                                let conData = update ? $scope.contactData[0] : $scope.contactData;
+                                                                angular.forEach($scope.employeeslist, function(value, key){
+                                                                   
+                                                                    if(value.email === conData.email) {
+                                                                        if(update)
+                                                                            $scope.contactData[0].userid = value.userid;
+                                                                        else
+                                                                            $scope.contactData.userid = value.userid;
+                                                                    }
+                                                                });
+                                                                $scope.contactData  = {};
+                                                                $scope.contactData  = obj_contactnew();
+                                                                $scope.contactData.addedDate = $filter('date')(new Date(), "MM/dd/yy");
+                                                                form.$setPristine();
+                                                                form.$setValidity();
+
+                                                                $scope.$apply();
+                                                            }
+                                                            else
+                                                            {
+                                                                $('#spinner').hide();
+                                                                toastr.error('Something went wrong. result'+result);    
+                                                            }
+                                                        } else {
+                                                            $('#spinner').hide();
+                                                            toastr.error('Something went wrong.');
+                                                        }
+                                                    },
+                                                    {escape: false}                 
+                                                );
+                                            } 
+                                        } else{
+                                            $('#spinner').hide();
+                                            toastr.error('Something went wrong. ');
+                                        }
+                                    },{escape: false});
+                                }
+                                else
+                                {
+                                    $('#spinner').hide();
+                                    toastr.error('Please fill the required field ');
+                                }
+                            }
+                        }
+                        else
+                        {
+                            $('#spinner').hide();
+                            toastr.error('Please fill the required field ');
+                        }
+                    }
+                    /*$('#spinner').hide();*/
+                }
+
+                /* reset Form start*/
+                var pristineFormTemplate = $('#form1').html();
+                $scope.resetForm = function () {
+                    $('#form1').empty().append($compile(pristineFormTemplate)($scope));
+                }
+                /* reset Form complete*/
+
+                $scope.updateContact = function () {
+                    
+                    $('#spinner').hide();
+                    toastr.success('Success! You Just Updated '+$scope.contactListForUpdateInsert[0].firstName + '\'s Details.');
+                }
+
+                $scope.insertContact = function () {
+                  
+                    $('#spinner').hide();
+                    toastr.success('Success! You Just Added '+$scope.contactListForUpdateInsert[0].firstName);
+                    refreshForm();
+                    $("#drivingstatenew").tagsinput('removeAll');
+                }
+
+                /* show toast */
+                $scope.showToast = function(message) {
+                    toastr.error(message);
+                }
+
+                /* Sorting For table */
+                $scope.sortKey = 'firstName';
+                $scope.reverse = false;
+                $scope.sort = function(keyname){
+                  
+                    $scope.reverse = ($scope.sortKey === keyname)? !$scope.reverse : false;
+                    $scope.sortKey = keyname; 
+                    if (keyname === 'firstName' || keyname === 'managerName' || keyname === 'role' || keyname === 'email') {
+                        $scope.employeeslist.sort(function (a, b) {
+                          
+                                            var nameA = (a[keyname] === null) ? '' : a[keyname].toLowerCase(),
+                                                nameB = (b[keyname] === null) ? '' : b[keyname].toLowerCase()
+                                            if ($scope.reverse) {
+                                                if (nameA < nameB) //sort string ascending
+                                                    return -1
+                                                if (nameA > nameB)
+                                                    return 1
+                                                return 0 //default return value (no sorting)
+                                            } else {
+                                                if (nameA < nameB) //sort string ascending
+                                                    return 1
+                                                if (nameA > nameB)
+                                                    return -1
+                                                return 0 //default return value (no sorting)
+                                            }
+                                        })
+                    }
+                    if(keyname === 'drivingStates'){
+                        $scope.employeeslist.sort(function (a, b) {
+                    
+                                            var nameA = (a[keyname] === null) ? '' : a[keyname],
+                                                nameB = (b[keyname] === null) ? '' : b[keyname]
+                                            if ($scope.reverse) {
+                                                if (nameA < nameB) //sort string ascending
+                                                    return -1
+                                                if (nameA > nameB)
+                                                    return 1
+                                                return 0 //default return value (no sorting)
+                                            } else {
+                                                if (nameA < nameB) //sort string ascending
+                                                    return 1
+                                                if (nameA > nameB)
+                                                    return -1
+                                                return 0 //default return value (no sorting)
+                                            }
+                                        })
+                    }
+                    if(keyname === 'zipCode'){
+                        $scope.employeeslist.sort(function (a, b) {
+                                     
+                                            var nameA = (a[keyname] === null) ? '' : parseInt(a[keyname]),
+                                                nameB = (b[keyname] === null) ? '' : parseInt(b[keyname])
+                                            if ($scope.reverse) {
+                                                if (nameA < nameB) //sort string ascending
+                                                    return -1
+                                                if (nameA > nameB)
+                                                    return 1
+                                                return 0 //default return valuscope.model.mileageList=e (no sorting)
+                                            } else {
+                                                if (nameA < nameB) //sort string ascending
+                                                    return 1
+                                                if (nameA > nameB)
+                                                    return -1
+                                                return 0 //default return value (no sorting)
+                                            }
+                    })
+                }
+                    if (keyname === 'deactivaedDate') {
+                          $scope.employeeslist.sort(function (a, b) {
+                                       
+                                            var nameA = (a[keyname] === null) ? '' : new Date(a[keyname].toLowerCase()),
+                                                nameB = (b[keyname] === null) ? '' : new Date(b[keyname].toLowerCase())
+                                            if ($scope.reverse) {
+                                                if (nameA < nameB) //sort string ascending
+                                                    return -1
+                                                if (nameA > nameB)
+                                                    return 1
+                                                return 0 //default return value (no sorting)
+                                            } else {
+                                                if (nameA < nameB) //sort string ascending
+                                                    return 1
+                                                if (nameA > nameB)
+                                                    return -1
+                                                return 0 //default return value (no sorting)
+                                            }
+                                        })
+                                  
+                                }
+                }
+            
+                $scope.keyPressed = function (keyEvent) {
+                
+                    if (keyEvent.keyCode == 13) {
+                        
+                        event.preventDefault();
+                    }
+                    //event.stopPropagation();
+                };
+                $('#spinner').hide();
+                $scope.hideErrorModal();
+            }]);
+            </script>
+    </head>
+    <body ng-app="rosterModule" ng-controller="RosterController" id="theBody">
+        <header>
+            <div class="main-header sticky" id="myHeader">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-md-12 p-0">
+                            <nav class="navbar navbar-expand-md my-0 my-md-1 px-0">
+                                <a class="navbar-brand col-6 col-sm-6 col-md-3 col-lg-3 col-xl-3 px-0" ng-show="!admindriver" href="/app/admindashboard?accid={{accid}}&id={{id}}&showteam={{showteam}}" >
+                                    <img src="{!URLFOR($Resource.EmcCSS,'emc-design/assets/images/logo/mBurse-logo_rev.png')}" class="img-fluid" href="javascript:void(0)" alt="logo"/>
+                                </a>
+                                <a class="navbar-brand col-6 col-sm-6 col-md-3 col-lg-3 col-xl-3 px-0" ng-show="admindriver" href="/app/admindriverdashboard?accid={{accid}}&id={{id}}&showteam={{showteam}}&admindriver=true" >
+                                    <img src="{!URLFOR($Resource.EmcCSS,'emc-design/assets/images/logo/mBurse-logo_rev.png')}" class="img-fluid" href="javascript:void(0)" alt="logo"/>
+                                </a>
+                                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+                                    <span class="navbar-toggler-icon"><i class="fa fa-bars"></i></span>
+                                </button>
+                                <div class="collapse navbar-collapse flex-column col-12 col-sm-6 col-md-9 col-lg-9 col-xl-9 ml-3 ml-sm-0 ml-lg-0 align-items-end" id="collapsibleNavbar">
+                                    <ul class="navbar-nav flex-row">
+                                        <li class="nav-item">
+                                            <a class="nav-link text-white" ng-show="!admindriver" href="/app/admindashboard?accid={{accid}}&id={{id}}&showteam={{showteam}}">Dashboard</a>
+                                            <a class="nav-link text-white" ng-show="admindriver" href="/app/admindriverdashboard?accid={{accid}}&id={{id}}&showteam={{showteam}}&admindriver=true" >Dashboard</a>
+                                        </li>
+                                        <li class="nav-item active">
+                                            <a class="nav-link text-white" ng-show="!admindriver" href="/app/roster?accid={{accid}}&id={{id}}&showteam={{showteam}}">Drivers</a>
+                                            <a class="nav-link text-white" ng-show="admindriver" href="/app/roster?accid={{accid}}&id={{id}}&showteam={{showteam}}&admindriver=true">Drivers</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link text-white"  ng-show="!admindriver" href="/app/reportlist?accid={{accid}}&id={{id}}&showteam={{showteam}}">Reports</a>
+                                            <a class="nav-link text-white"  ng-show="admindriver" href="/app/reportlist?accid={{accid}}&id={{id}}&showteam={{showteam}}&admindriver=true">Reports</a>
+                                        </li>
+                                        <li class="nav-item"> 
+                                            <a class="nav-link text-white" ng-show="admindriver" href="/app/driveradminmanagermydetail?accid={{accid}}&showteam={{showteam}}&id={{id}}&admindriver=true">My Details</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link text-white" href="/app/secur/logout.jsp">Logout</a>
+                                        </li>
+                                    </ul>                                   
+                                </div>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <div id="spinner">
+            <div class="spinner-background"></div>
+            <div class="spinner-load">
+                <div class="spinner-border text-light" role="status">
+                    <span class="sr-only">Loading...</span>
+                </div>
+            </div>
+        </div>
+        <section class="container-fluid">
+            <div class="my-3 admin-roster-tab-section">
+                <ul class="nav nav-pills mb-3" id="adminroster-pills-tab" role="tablist">
+                    <li class="nav-item mb-2 mb-sm-0 mb-md-0">
+                        <a class="nav-link" id="pills-alldrivers-tab-back" data-toggle="pill" href="#pills-alldrivers"
+                            role="tab" aria-controls="pills-home" aria-selected="true" ng-show="backButton"  ng-click="Showback()">Back</a>
+                    </li>
+                    <li class="nav-item mb-2 mb-sm-0 mb-md-0">
+                        <a class="nav-link active" id="pills-alldrivers-tab" data-toggle="pill" href="#pills-alldrivers"
+                            role="tab" aria-controls="pills-home" aria-selected="true"  ng-attr-active="tabs[1].active" ng-click="Show()">View All Employees</a>
+                    </li>
+                    <li class="nav-item mb-2 mb-sm-0 mb-md-0">
+                        <a class="nav-link" id="pills-addadminroster-tab" data-toggle="pill" href="#pills-addadminroster" role="tab" aria-controls="pills-addadminroster" data-target="#pills-addadminroster"  ng-attr-active="tabs[2].active" ng-click="Hide();showForm()" >Add</a>
+                    </li>
+                    <li class="nav-item mb-2 mb-sm-0 mb-md-0">
+                        <a class="nav-link" id="pills-importadminroster-tab" data-toggle="pill"
+                            href="#pills-importadminroster" role="tab" aria-controls="pills-importadminroster"
+                            aria-selected="false" ng-attr-active="tabs[3].active" ng-click="Hide()">Import</a>
+                    </li>
+                    <li class="nav-item mb-2 mb-sm-0 mb-md-0" ng-show="IsVisible">
+                       <div excel-export="true" export-data="emplistfordownload" file-name="{{fileName}}"/> 
+                    </li>
+                    <li class="nav-item mb-2 mb-sm-0 mb-md-0" ng-show="IsVisibleLogin">
+                        <a class="nav-link" id="pills-loginadminroster-tab" href="/app/driverdashboardfromadminmanager?accid={{accid}}&id={{id}}&showteam={{showteam}}"  ng-attr-active="tabs[2].active" ng-click="Hide();showForm()" >Login As</a>
+                    </li>
+                </ul>
+                <div class="tab-content" id="pills-tabContent">
+                    <div class="tab-pane fade show active" id="pills-alldrivers" role="tabpanel"
+                        aria-labelledby="pills-alldrivers-tab">
+                        <form id="form2" name="myform" class="needs-validation" novalidate="true">
+                            <div class=" table-responsive" id="refreshdiv">
+                                 <!-- AI-000206 - Start-->
+                                 <div id="example_filter" class="dataTables_filter pull-left d-block">
+                                    <div class="input-group w-85">
+                                        <i id="filtericon" class="fa fa-search" ng-if="search.length===0"></i>
+                                        <input class="form-control py-2 border-right-0 border" type="search" ng-model="search" placeholder="Search" aria-controls="example" ng-keypress="keyPressed($event)" id="example-search-input" />
+                                    </div>
+                                </div>
+                                <!-- AI-000206 - End-->
+                                <table id="example" class="table table-striped dt-responsive nowrap dataTable" cellspacing="0" width="100%" ng-cloak="true">
+                                    <thead>
+                                        <tr>
+                                            <th ng-click="sort('firstName')">Name
+                                                <span class="sort-icon pull-right" ng-show="sortKey=='firstName'" ng-class="{'fa fa-chevron-up':reverse,'fa fa-chevron-down':!reverse}"></span> 
+                                            </th>
+                                            <th ng-click="sort('email')">Email
+                                                <span class="sort-icon pull-right" ng-show="sortKey=='email'" ng-class="{'fa fa-chevron-up':reverse,'fa fa-chevron-down':!reverse}"> 
+                                            </span>
+                                            </th>
+                                            <th ng-click="sort('deactivaedDate')">Deactivation
+                                                <span class="sort-icon pull-right" ng-show="sortKey=='deactivaedDate'" ng-class="{'fa fa-chevron-up':reverse,'fa fa-chevron-down':!reverse}"></span>
+                                            </th>
+                                            <th ng-click="sort('role')">Role
+                                                <span class="sort-icon pull-right" ng-show="sortKey=='role'" ng-class="{'fa fa-chevron-up':reverse,'fa fa-chevron-down':!reverse}"></span>
+                                            </th>
+                                            <th ng-click="sort('managerName')">Manager
+                                                <span class="sort-icon pull-right" ng-show="sortKey=='managerName'" ng-class="{'fa fa-chevron-up':reverse,'fa fa-chevron-down':!reverse}"></span>
+                                            </th>
+                                            <th ng-click="sort('zipCode')">Zip Code
+                                                <span class="sort-icon pull-right" ng-show="sortKey=='zipCode'" ng-class="{'fa fa-chevron-up':reverse,'fa fa-chevron-down':!reverse}"></span>
+                                            </th>
+                                            <th ng-click="sort('drivingStates')">Driving States
+                                                <span class="sort-icon pull-right" ng-show="sortKey=='drivingStates'" ng-class="{'fa fa-chevron-up':reverse,'fa fa-chevron-down':!reverse}"></span>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr dir-paginate="emp in employeeslist|filter:search |itemsPerPage: 25" ng-class="{'selected':emp.userid == selectedRow}" ng-model="emp" pagination-id="employees">
+                                            <td ng-model="emp.name">                                            
+                                                <a data-toggle="pill" class="a-setcolor-pointer" data-target="#pills-addadminroster" ng-click="passData(emp)">{{emp.firstName}} {{emp.lastName}}</a>
+                                                
+                                            </td>
+                                            <td ng-show="!emp.iseditable" ng-click="edit(emp,emp.userid);emp.iseditable = !emp.iseditable" class="a-hover-pointer">
+                                                {{emp.email}}
+                                            </td>
+                                            <td ng-show="emp.iseditable">
+                                                <input type="email" name="email_{{emp.userid}}" class="form-control rounded-0 a-hover-pointer" ng-model="emp.email" pattern="^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$" required="true" />
+                                            </td>
+                                            <td ng-show="emp.iseditable">
+                                                <a ng-click="editDateModel.open(emp);loadDatePicker(emp.deactivaedDate,emp.lastPayDate);" class="a-hover-pointer">
+                                                    <i class="fa fa-edit a-hover-pointer"></i>
+                                                    {{formateDate(emp.deactivaedDate)}}
+                                                </a>
+                                            </td>
+                                            <td ng-model="emp.deactivaedDate" ng-show="!emp.iseditable">
+                                                <a ng-click="edit(emp,emp.userid);editDateModel.open(emp);loadDatePicker(emp.deactivaedDate,emp.lastPayDate);" >
+                                                    <i class="fa fa-edit a-hover-pointer"></i>
+                                                    {{formateDate(emp.deactivaedDate)}}
+                                                </a>
+                                            </td>
+
+                                            <td style="display: none" ng-model="emp.lastPayDate">
+                                                <a ng-click="editDateModel.open(emp)" >
+                                                    <i class="fa fa-edit a-hover-pointer"></i> {{emp.lastPayDate}}</a></td>
+
+                                            <td ng-model="emp.role" ng-show="!emp.iseditable" ng-click="edit(emp,emp.userid);emp.iseditable = !emp.iseditable" class="a-hover-pointer">
+                                                {{emp.role}}
+                                            </td>
+                                            <td ng-model="emp.role" ng-show="emp.iseditable" >
+                                                
+                                                <select  ng-model="emp.role" required="true" name="role_{{emp.userid}}" class="form-control rounded-0 a-hover-pointer">
+                                                    <option ng-selected="{{emp.role == role}}" ng-repeat="role in rolelist" value="{{role}}">{{role}}</option>
+                                                </select>
+                                            </td>
+                                            <td ng-model="emp.managerId" ng-show="!emp.iseditable"  ng-click="edit(emp,emp.userid);emp.iseditable = !emp.iseditable" class="a-hover-pointer">
+                                                {{emp.managerName}}                                           
+                                            </td>
+
+                                            <td ng-model="emp.managerId" ng-show="emp.iseditable">
+                                                <select id="selectemp" ng-model="emp.managerId" required="true" name="manager_{{emp.userid}}" ng-click="event = $event" class="form-control rounded-0 a-hover-pointer" ng-change="selectedManager(event,emp)">
+                                                    <option ng-selected="{{emp.managerId == manager.Id}}" ng-repeat="manager in managerlist" value="{{manager.Id}}" name="{{manager.Name}}">{{manager.Name}}</option>
+                                                </select>
+                                              
+                                           </td>
+                                          
+                                            <td ng-model="emp.zipCode" ng-show="!emp.iseditable" ng-click="edit(emp,emp.userid);emp.iseditable = !emp.iseditable" class="a-hover-pointer">{{emp.zipCode}}
+                                                
+                                            </td>
+                                            <td ng-model="emp.zipCode" ng-show="emp.iseditable" >
+                                                <input ng-model="emp.zipCode" size="5" maxlength="5" pattern="^[0-9]{5}$" ng-required="emp.role!=='Manager' && emp.role!=='Admin'" name="zip_{{emp.userid}}" class="form-control rounded-0 a-hover-pointer" type="text" />
+                                            </td>
+                                            <td ng-model="emp.drivingStates">
+                                                
+                                                <div>
+                                                    <div class="adminroster-driverstatus" ng-model="emp.drivingStates" ng-if="emp.drivingStates" ng-repeat="state in emp.drivingStates" >
+                                                        <span class="tagclose" ng-click="edit(emp,emp.userid);removeState(emp,$index);"><i class="fa fa-close"></i></span> 
+                                                        <a href=".adminrosterDriverstatesModal" data-toggle="modal" data-target="adminrosterDriverstatesModal" >{{state}}</a> 
+                                                    </div>
+                                                </div>
+                                                 <a ng-if="emp.role!=='Manager' && emp.role!=='Admin'" class="adminroster-add-driverstatus" ng-click="edit(emp,emp.userid);editDialog.open(emp,drivingStatesList)"><i class="fa fa-plus"></i>
+                                                </a>
+                                            </td>
+                                           
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <dir-pagination-controls max-size="1" direction-links="true" boundary-links="true" autoHide="false" responsive="true" class="pull-right" pagination-id="employees" ></dir-pagination-controls>
+                                <edit-Driving-States model="editDialog"></edit-Driving-States>
+                                <edit-Deactivation-Date model="editDateModel"></edit-deactivation-date>
+                            
+                            </div>
+                            <button class="btn btn-secondary rounded-0 float-right btnupdate" type="submit" ng-show="IsVisibleUpdatebtn"  ng-click="update(myform)">Update</button>
+                            <button class="btn btn-secondary rounded-0 float-right" type="submit" ng-show="IsVisibleUpdatebtn" ng-click="cancelUpdate()">Cancel</button>
+                        </form>
+                    </div>
+                    <div class="tab-pane fade" id="pills-addadminroster" role="tabpanel"
+                        aria-labelledby="pills-addadminroster-tab">
+                        <div class="form-divider"></div>
+                        <div class="container-fluid">
+                            <div class="row"> 
+                                <toaster-container toaster-options="{'time-out': 1000}"></toaster-container>
+                                <form id="form1" name="form1" class="needs-validation col-xl-12 col-lg-12 col-md-12 col-sm-12" novalidate="true">
+                                    <div class="row">
+                                        <div class="col-xl-6 col-lg-12 col-md-12 col-sm-12">
+                                            <h1 class="form-heading mb-4 mb-sm-0 mb-md-4 mb-lg-4 d-block">Personal Details</h1>
+                                            <div class="form-group-theme row">
+                                                <label for="inputFirstname"
+                                                    class="col-xl-4 col-lg-3 col-md-3 col-sm-3 col-form-label form-lable">First
+                                                    Name:</label>
+                                                    
+                                                <div class="col-xl-8 col-lg-8 col-md-8 col-sm-8 validate-div">
+                                                    <span class="span-validation" data-toggle="tooltip" data-placement="top"
+                                                        title="Required field">*</span>
+                                                    <input id="firstName" type="text" ng-model="contactData[0].firstName" ng-show="IsShow" class="form-control rounded-0" ng-value="contactData[0].firstName" placeholder="" required="true" name="firstname_0"></input>
+                                                    
+                                                    <input id="firstName" type="text" ng-model="contactData.firstName" ng-show="!IsShow" class="form-control rounded-0" placeholder="" required="true" name="firstname_1" ></input>
+                                                </div>
+                                            </div>
+                                            <div class="form-group-theme row">
+                                                <label for="inputLastname"
+                                                    class="col-xl-4 col-lg-3 col-md-3 col-sm-3 col-form-label form-lable">Last
+                                                    Name:</label>
+                                                <div class="col-xl-8 col-lg-8 col-md-8 col-sm-8 validate-div">
+                                                    <span class="span-validation" data-toggle="tooltip" data-placement="top"
+                                                        title="Required field">*</span>
+                                                    <input id="lastName" type="text" ng-model="contactData[0].lastName" ng-show="IsShow" class="form-control rounded-0" placeholder=""
+                                                        required="true" name="lastname_0"/>
+                                                    <input id="lastName" type="text" ng-model="contactData.lastName" ng-show="!IsShow" class="form-control rounded-0" placeholder=""
+                                                        required="true" name="lastname_1"/>
+
+                                                </div>
+                                            </div>
+                                            <div class="form-group-theme row">
+                                                <label for="inputEmail"
+                                                    class="col-xl-4 col-lg-3 col-md-3 col-sm-3 col-form-label form-lable">Email:</label>
+                                                <div class="col-xl-8 col-lg-8 col-md-8 col-sm-8 validate-div">
+                                                    <span class="span-validation" data-toggle="tooltip" data-placement="top"
+                                                        title="Required field">*</span>
+                                                    <input type="email" id="email" ng-model="contactData[0].email" ng-show="IsShow" class="form-control rounded-0" placeholder=""
+                                                        required="true" name="email_0" pattern="^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$"/>
+                                                    <input type="email" id="email" ng-model="contactData.email" ng-show="!IsShow" class="form-control rounded-0" placeholder=""
+                                                        required="true"  name="email_1" pattern="^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$"/>
+                                                </div>
+                                            </div>
+                                            <div class="form-group-theme row">
+                                                <label for="inputRole:"
+                                                    class="col-xl-4 col-lg-3 col-md-3 col-sm-3 col-form-label form-lable">Role:</label>
+                                                <div class="col-xl-8 col-lg-8 col-md-8 col-sm-8 validate-div">
+                                                    <span class="span-validation" data-toggle="tooltip" data-placement="top"
+                                                        title="Required field">*</span>
+                                                    <select  id="role" ng-model="contactData[0].role" ng-show="IsShow" class="form-control rounded-0" required="true" name="role_0" ng-blur="rolewisevalidation(contactData[0].role)" ><!--  -->
+                                                        <option  value=""></option>
+                                                        <option ng-selected="{{contactData[0].role}}" ng-repeat="role in rolelist" value="{{role}}">{{role}}</option>
+                                                    </select>
+                                                    <select  id="role" ng-model="contactData.role" ng-show="!IsShow" class="form-control rounded-0" required="true" name="role_1" ng-blur="rolewisevalidation(contactData.role)"><!--  -->
+                                                        <option value="" ></option>
+                                                        <option ng-repeat="role in rolelist" value="{{role}}">{{role}}</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group-theme row">
+                                                <label for="inputManager"
+                                                    class="col-xl-4 col-lg-3 col-md-3 col-sm-3 col-form-label form-lable">Manager:</label>
+                                                <div class="col-xl-8 col-lg-8 col-md-8 col-sm-8 validate-div">
+                                                    <span class="span-validation" data-toggle="tooltip" data-placement="top"
+                                                        title="Required field" ng-if="showmanagervalidation">*</span>
+                                                        <select  id="managerid" class="form-control rounded-0" ng-model="contactData[0].managerId" ng-show="IsShow" ng-required="showmanagervalidation" name="manager_0">
+                                                            <!-- <option  value=""></option> -->
+                                                            <option ng-selected="{{contactData[0].managerId == manager.Id}}" ng-repeat="manager in managerlist" value="{{manager.Id}}">{{manager.Name}}</option>
+                                                        </select>
+                                                        <select  id="managerid" class="form-control rounded-0" ng-model="contactData.managerId" ng-show="!IsShow" ng-required="showmanagervalidation" name="manager_1">
+                                                            <option  value=""></option>
+                                                            <option ng-repeat="manager in managerlist" value="{{manager.Id}}">{{manager.Name}}</option>
+                                                        </select>
+    
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="form-group-theme row">
+                                                <label for="inputCity"
+                                                    class="col-xl-4 col-lg-3 col-md-3 col-sm-3 col-form-label form-lable">Approval Threshold</label>
+                                                <div class="col-xl-8 col-lg-8 col-md-8 col-sm-8">
+                                                    <input type="text" id="threshold" ng-model="contactData[0].approvalThreshold" ng-show="IsShow" class="numinput form-control rounded-0" placeholder="" name="threshold_0"/>
+                                                    <input type="text" id="threshold" ng-model="contactData.approvalThreshold" ng-show="!IsShow" class="numinput form-control rounded-0" placeholder=""
+                                                        name="threshold_1"/>
+                                                </div>
+                                            </div>
+                                            <div class="form-group-theme row">
+                                                <label for="inputEmployeeid"
+                                                    class="col-xl-4 col-lg-3 col-md-3 col-sm-3 col-form-label form-lable">Employee ID:</label>
+                                                <div class="col-xl-8 col-lg-8 col-md-8 col-sm-8">
+                                                    <input type="text" id="employeeId1" ng-model="contactData[0].employeeId" ng-show="IsShow" class="form-control rounded-0" placeholder="" />
+                                                    <input type="text" id="employeeId1" ng-model="contactData.employeeId" ng-show="!IsShow" class="bootstrap-tagsinput rounded-0" placeholder="" /> 
+                                                </div>
+                                            </div>
+                                            <div class="form-group-theme row">
+                                                <label for="inputCellphone"
+                                                    class="col-xl-4 col-lg-3 col-md-3 col-sm-3 col-form-label form-lable">Cell Phone:</label>
+                                                <div class="col-xl-8 col-lg-8 col-md-8 col-sm-8">
+                                                        <span class="tagquestion" data-toggle="tooltip" title="Cell Phone Number"  data-html="true" data-placement="top"><i class="fa fa-question"></i></span>
+                                                    <input type="text" id="cellphone" ng-model="contactData[0].cellphone" ng-show="IsShow" class="cellphoneinput form-control rounded-0" data-mask="000-000-0000" placeholder="Enter Cell Phone Number"/>
+                                                    <input type="text" id="cellphone" ng-model="contactData.cellphone" class="cellphoneinput form-control rounded-0"  ng-show="!IsShow" data-mask="000-000-0000" placeholder="Enter Cell Phone Number"/>
+                                                </div>
+                                            </div>
+                                            <div class="form-group-theme row" ng-if="accid === accountId">
+                                                <label for="inputCellphone"
+                                                    class="col-xl-4 col-lg-3 col-md-3 col-sm-3 col-form-label form-lable">GL Code:</label>
+                                                <div class="col-xl-8 col-lg-8 col-md-8 col-sm-8">
+                                                    <input type="text" id="glcode" ng-model="contactData[0].glcode" ng-show="IsShow" class="form-control rounded-0"  placeholder="Enter GL Code"/>
+                                                    <input type="text" id="glcode" ng-model="contactData.glcode" class="form-control rounded-0"  ng-show="!IsShow"  placeholder="Enter GL Code"/>
+                                                </div>
+                                            </div>
+                                            <div class="form-group-theme row">
+                                                <label for="resetmBursementLink"
+                                                    class="col-xl-4 col-lg-3 col-md-3 col-sm-3 col-form-label form-lable">Reset mBursement Link :</label>
+                                                <div class="col-xl-8 col-lg-8 col-md-8 col-sm-8">
+                                                    <span class="tagquestionLink" data-toggle="tooltip" title="Reset Link For mBursement"  data-html="true" data-placement="top"><i class="fa fa-question"></i></span> 
+                                                            <input type="checkbox" class="checkb1" ng-show="IsShow" ng-model="contactData[0].resetReimbursementLink"/>  
+                                                            <input type="checkbox" class="checkb1" ng-show="!IsShow" ng-model="contactData.resetReimbursementLink"/>             
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-xl-6 col-lg-12 col-md-12 col-sm-12">
+                                            <h1 class="form-heading mb-4 mb-sm-0 mb-md-4 mb-lg-4  mt-4 mt-sm-0 mt-md-0 d-block">Plan Details</h1>
+                                            
+                                            <div class="form-group-theme row">
+                                                <label for="inputActivationdate:"
+                                                    class="col-xl-4 col-lg-3 col-md-3 col-sm-3 col-form-label form-lable">Activation
+                                                    Date:</label>
+                                                <div class="col-xl-8 col-lg-8 col-md-8 col-sm-8 validate-div">
+                                                    <span class="span-validation" data-toggle="tooltip" data-placement="top"
+                                                        title="Required field">*</span>
+                                                    
+                                                    <div class="input-group">
+                                                        <input type="text" ng-model="contactData[0].activationDate" id="activedate_0" ng-show="IsShow" class= "form-control rounded-0"
+                                                            placeholder="" required="true" name="activedate_0"/>
+                                                        <input type="text" ng-model="contactData.activationDate" id="activedate_1" ng-show="!IsShow" class="form-control rounded-0"
+                                                        placeholder="" required="true" name="activedate_1"/>
+                                                        
+                                                        <div class="input-group-prepend" id="">
+                                                            <span class="input-group-text"><i
+                                                                    class="fas fa-calendar-alt"></i></span>
+                                                        </div> 
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group-theme row">
+                                                <label for="inputActivationdate:"
+                                                    class="col-xl-4 col-lg-3 col-md-3 col-sm-3 col-form-label form-lable">Added Date:</label>
+                                                <div class="col-xl-8 col-lg-8 col-md-8 col-sm-8 validate-div">
+                                                    <div class="input-group">
+                                                        <input type="text" ng-model="contactData[0].addedDate" id="activedate_0" ng-show="IsShow" class= "form-control rounded-0" placeholder="" name="activedate_0" disabled="disabled"></input>
+                                                        <input type="text" ng-model="contactData.addedDate" id="activedate_1" ng-show="!IsShow" class="form-control rounded-0"
+                                                        placeholder="" name="activedate_1" disabled="disabled">
+                                                        </input>
+                                                        <div class="input-group-prepend" id="">
+                                                            <span class="input-group-text"><i
+                                                                    class="fas fa-calendar-alt"></i></span>
+                                                        </div> 
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group-theme row">
+                                                <label for="inputVehicletype"
+                                                    class="col-xl-4 col-lg-3 col-md-3 col-sm-3 col-form-label form-lable">Vehicle Type:</label>
+                                                <div class="col-xl-8 col-lg-8 col-md-8 col-sm-8 validate-div">
+                                                    <span class="span-validation" data-toggle="tooltip" data-placement="top"
+                                                        title="Required field"  ng-if="showvalidation">*</span>
+                                                    <select id="vehicalType" ng-model="contactData[0].vehicalType" class="form-control rounded-0"  required="true" ng-show="IsShow" name="vehicalType_0" ng-if="showrequiredfield">
+                                                        <option  value=""></option>
+                                                        <option ng-selected="{{vehical == contactData[0].vehicalType}}" ng-repeat="vehical in vehiclelist track by $index" value="{{vehical}}">{{vehical}}</option>
+                                                    </select>
+                                                    <select id="vehicalType" ng-model="contactData[0].vehicalType" class="form-control rounded-0" ng-show="IsShow" name="vehicalType_0" ng-if="!showrequiredfield">
+                                                        <option  value=""></option>
+                                                        <option ng-selected="{{vehical == contactData[0].vehicalType}}" ng-repeat="vehical in vehiclelist track by $index" value="{{vehical}}">{{vehical}}</option>
+                                                    </select>
+                                                    <select id="vehicalType" ng-model="contactData.vehicalType" class="form-control rounded-0" ng-show="!IsShow" ng-if="showrequiredfield" name="vehicalType_1"  required="true">
+                                                        <option  value=""></option>
+                                                        <option ng-selected="{{vehicle == contactData.vehicalType}}" ng-repeat="vehicle in vehiclelist" value="{{vehicle}}">{{vehicle}}</option>
+                                                    </select>
+                                                    <select id="vehicalType" ng-model="contactData.vehicalType" class="form-control rounded-0" ng-show="!IsShow"  ng-if="!showrequiredfield" name="vehicalType_1">
+                                                        <option  value=""></option>
+                                                        <option ng-selected="{{vehicle == contactData.vehicalType}}" ng-repeat="vehicle in vehiclelist" value="{{vehicle}}">{{vehicle}}</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group-theme row">
+                                                <label for="inputZipCode"
+                                                    class="col-xl-4 col-lg-3 col-md-3 col-sm-3 col-form-label form-lable">Zip
+                                                    Code:</label>
+                                                <div class="col-xl-8 col-lg-8 col-md-8 col-sm-8 validate-div">
+                                                    <span class="span-validation" data-toggle="tooltip" data-placement="top"
+                                                        title="Required field" ng-if="showvalidation">*</span>
+                                                    <input type="text" id="zipCode" ng-model="contactData[0].zipCode" ng-show="IsShow" class="form-control rounded-0" placeholder=""
+                                                        required="true" maxlength="5" name="zip_0" pattern="^[0-9]{5}$" ng-change="showcitycountryedit(contactData[0].zipCode,contactData[0].role)" ng-if="showrequiredfield"/>
+                                                    <input type="text" id="zipCode" ng-model="contactData[0].zipCode" ng-show="IsShow" class="form-control rounded-0" placeholder="" maxlength="5" name="zip_0" pattern="^[0-9]{5}$" ng-change="showcitycountryedit(contactData[0].zipCode,contactData[0].role)" ng-if="!showrequiredfield"/>
+                                                    <input type="text" id="zipCode" ng-model="contactData.zipCode" ng-show="!IsShow" class="form-control rounded-0" placeholder=""
+                                                        required="true" maxlength="5" name="zip_1" pattern="^[0-9]{5}$" ng-change="showcitycountry(contactData.zipCode,contactData.role)" ng-if="showrequiredfield"/>
+                                                    <input type="text" id="zipCode" ng-model="contactData.zipCode" ng-show="!IsShow" class="form-control rounded-0" placeholder=""
+                                                    maxlength="5" name="zip_1" pattern="^[0-9]{5}$" ng-if="!showrequiredfield" ng-change="showcitycountry(contactData.zipCode,contactData.role)"/>
+                                                </div>
+                                            </div>
+                                            <div class="form-group-theme row">
+                                                <label for="inputCity:"
+                                                    class="col-xl-4 col-lg-3 col-md-3 col-sm-3 col-form-label form-lable">City:</label>
+                                                <div class="col-xl-8 col-lg-8 col-md-8 col-sm-8 validate-div">
+                                                    <span class="span-validation" data-toggle="tooltip" data-placement="top"
+                                                        title="Required field" ng-if="showvalidation">*</span>
+                                                    <select  id="city" ng-model="contactData[0].city" ng-show="IsShow" class="form-control rounded-0" required="true" name="city_0" ng-if="showrequiredfield">
+                                                    <option value=""></option>
+                                                        <option ng-selected="{{contactData[0].city == city}}" ng-repeat="city in relatedcitylist track by $index" value="{{city}}" >{{city}}</option>
+                                                    </select>
+                                                    <select  id="city" ng-model="contactData[0].city" ng-show="IsShow" class="form-control rounded-0" name="city_0"  ng-if="!showrequiredfield">
+                                                        <option value=""></option>
+                                                        <option ng-selected="{{contactData[0].city == city}}" ng-repeat="city in relatedcitylist track by $index" value="{{city}}" >{{city}}</option>
+                                                    </select>
+                                                    <select  id="city" ng-model="contactData.city" ng-show="!IsShow" class="form-control rounded-0" required="true" name="city_1"  ng-if="showrequiredfield">
+                                                        <option value=""></option>
+                                                        <option ng-selected="{{city == contactData.city}}"  ng-repeat="city in relatedcitylist track by $index" value="{{city}}">{{city}}</option>
+                                                    </select>
+                                                    <select  id="city" ng-model="contactData.city" ng-show="!IsShow" class="form-control rounded-0" name="city_1"  ng-if="!showrequiredfield">
+                                                        <option value=""></option>
+                                                        <option ng-selected="{{city == contactData.city}}" ng-repeat="city in relatedcitylist track by $index" value="{{city}}">{{city}}</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group-theme row">
+                                                <label for="inputState:"
+                                                    class="col-xl-4 col-lg-3 col-md-3 col-sm-3 col-form-label form-lable">State:</label>
+                                                <div class="col-xl-8 col-lg-8 col-md-8 col-sm-8 validate-div">
+                                                    <span class="span-validation" data-toggle="tooltip" data-placement="top"
+                                                        title="Required field" ng-if="showvalidation">*</span>
+                                                    <input type="text" id="state" ng-model="contactData[0].state" ng-show="IsShow" class="form-control rounded-0 uppercase" placeholder=""
+                                                        required="true" maxlength="2" name="state_0" pattern="^[A-Za-z]{2}$" disabled="disabled" ng-if="showrequiredfield"/>
+                                                    <input type="text" id="state" ng-model="contactData[0].state" ng-show="IsShow" class="form-control rounded-0 uppercase" placeholder=""
+                                                        required="true" maxlength="2" name="state_0" pattern="^[A-Za-z]{2}$" disabled="disabled" ng-if="!showrequiredfield"/>
+                                                    <input type="text" id="state" ng-model="contactData.state" ng-show="!IsShow" class="form-control rounded-0 uppercase" placeholder=""
+                                                        required="true" name="state_1" maxlength="2" pattern="^[A-Za-z]{2}$" disabled="disabled" ng-if="showrequiredfield"/>
+                                                    <input type="text" id="state" ng-model="contactData.state" ng-show="!IsShow" class="form-control rounded-0 uppercase" placeholder=""
+                                                        required="true" name="state_1" maxlength="2" pattern="^[A-Za-z]{2}$" disabled="disabled" ng-if="!showrequiredfield"/>
+                                                </div>
+                                            </div>
+                                            <div class="form-group-theme row" >
+                                                <label for="inputDrivingstates:"
+                                                    class="col-xl-4 col-lg-3 col-md-3 col-sm-3 col-form-label form-lable">Driving States:</label>
+                                                <div class="col-xl-8 col-lg-8 col-md-8 col-sm-8" ng-show="IsShow" >
+                                                    <span class="tagquestion" data-toggle="tooltip" title="<b>Use State Abbreviations:</b><br/> {{drivingStatesList.join(', ')}}" data-html="true" data-placement="top"><i class="fa fa-question"></i></span>
+                                                    <input ng-model="contactData[0].drivingStates" id="drivingstateContact" type="text" placeholder="Enter Driving States" data-role="tagsinput" />
+                                                    <input ng-model="contactData[0].drivingStates" id="hiddenConState" type="hidden" />
+                                                </div>
+                                                <div class="col-xl-8 col-lg-8 col-md-8 col-sm-8" ng-show="!IsShow" >
+                                                    <span class="tagquestion" data-toggle="tooltip" title="<b>Use State Abbreviations:</b><br/> {{drivingStatesList.join(', ')}}" data-html="true" data-placement="top"><i class="fa fa-question"></i></span>
+                                                    <input ng-model="contactData.drivingStates" id="drivingstatenew" type="text" placeholder="Enter Driving States" data-role="tagsinput" value="{{contactData.drivingStates}}" />
+                                                    <input ng-model="contactData.drivingStates" id="hiddennewConState" type="hidden" />
+                                                </div>
+                                                
+                                            </div>
+                                            <div class="form-group-theme row" ng-if="accid === accountId">
+                                                <label for="inputSageID:"
+                                                    class="col-xl-4 col-lg-3 col-md-3 col-sm-3 col-form-label form-lable">Sage 100 ID:</label>
+                                                <div class="col-xl-8 col-lg-8 col-md-8 col-sm-8" ng-show="IsShow" >
+                                                    <input ng-model="contactData[0].sage100ID" id="sage100ID_0" type="text" placeholder="Enter Sage 100 ID" class="form-control rounded-0"/>
+                                                    <input ng-model="contactData[0].sage100ID" id="sage100ID_1" type="hidden" class="form-control rounded-0"/>
+                                                </div>
+                                                <div class="col-xl-8 col-lg-8 col-md-8 col-sm-8" ng-show="!IsShow" >
+                                                    <input ng-model="contactData.sage100ID" id="sage100ID_0" type="text" value="{{contactData.sage100ID}}" placeholder="Enter Sage 100 ID" class="form-control rounded-0"/>
+                                                    <input ng-model="contactData.sage100ID" id="sage100ID_1" type="hidden" class="form-control rounded-0"/>
+                                                </div>
+                                                
+                                            </div>
+                                            <div class="form-group-theme row">
+                                                <label for="inputMonthlyMileage:"
+                                                    class="col-xl-4 col-lg-3 col-md-3 col-sm-3 col-form-label form-lable">Monthly Mileage:</label>
+                                                <div class="col-xl-8 col-lg-8 col-md-8 col-sm-8" ng-show="IsShow" >
+                                                    <input ng-model="contactData[0].monthlymileage" id="monthlymileage_0" type="text" placeholder="Enter Monthly Mileage" class="mileageinput form-control rounded-0"/>
+                                                    <input ng-model="contactData[0].monthlymileage" id="monthlymileage_1" type="hidden" class="form-control rounded-0"/>
+                                                </div>
+                                                <div class="col-xl-8 col-lg-8 col-md-8 col-sm-8" ng-show="!IsShow" >
+                                                    <input ng-model="contactData.monthlymileage" id="monthlymileage_0" type="text" value="{{contactData.monthlymileage}}" placeholder="Enter Monthly Mileage" class="mileageinput form-control rounded-0" />
+                                                    <input ng-model="contactData.monthlymileage" id="monthlymileage_1" type="hidden" class="form-control rounded-0"/>
+                                                </div>
+                                                
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-primary" data-toggle="modal" ng-click="createUpdateContact(contactData[0],'hiddenConState','drivingstateContact','_0',form1,true)" ng-show="IsShow">Submit</button>
+                                    <button class="btn btn-primary" data-toggle="modal"  ng-click="createUpdateContact(contactData,'hiddennewConState','drivingstatenew','_1',form1,false)" ng-show="!IsShow">Submit</button>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="form-divider"></div>
+
+                    </div>
+                    <div class="tab-pane fade" id="pills-importadminroster" role="tabpanel"
+                        aria-labelledby="pills-importadminroster-tab">
+                        <div class="container">
+                            <div class="row">
+                                <div
+                                    class="offset-md-3 offset-lg-3 offset-xl-3 col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6 px-0">
+                                    <div class="rcorners">
+                                    <div class="text-center my-3 my-sm-3 my-md-3 my-lg-3">
+                                        <div class=" my-3 my-sm-3 my-md-3 my-lg-3">
+                                            <p class="fileupload-title"><span class="font-weight-bold">Instructions &amp; Tips</span></p>
+
+                                        </div>
+                                    </div>
+                                    <div class="text-left">
+                                        <p class="font-weight-bold">Step 1. Download template by selecting <a onclick="window.open('{!$Label.Sample_csv_url}')" class="a-setcolor-pointer"> DOWNLOAD.</a></p>
+                                        <p class="font-weight-bold">Step 2. Complete template and save as a CSV file. MAKE SURE THE DATA IS CORRECT</p>
+                                        <p class="font-weight-bold">Step 3. "Select HERE to choose a file OR drag it here" to upload new drivers</p>
+                                        </div>
+                                        <form method="post" action="" enctype="multipart/form-data" novalidate="true" class="box">
+                                        <div class="box__input" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel, text/csv" id="box__input">
+                                            <svg class="box__icon" xmlns="" width="50" height="43" viewBox="0 0 50 43">
+                                                <path
+                                                    d="M48.4 26.5c-.9 0-1.7.7-1.7 1.7v11.6h-43.3v-11.6c0-.9-.7-1.7-1.7-1.7s-1.7.7-1.7 1.7v13.2c0 .9.7 1.7 1.7 1.7h46.7c.9 0 1.7-.7 1.7-1.7v-13.2c0-1-.7-1.7-1.7-1.7zm-24.5 6.1c.3.3.8.5 1.2.5.4 0 .9-.2 1.2-.5l10-11.6c.7-.7.7-1.7 0-2.4s-1.7-.7-2.4 0l-7.1 8.3v-25.3c0-.9-.7-1.7-1.7-1.7s-1.7.7-1.7 1.7v25.3l-7.1-8.3c-.7-.7-1.7-.7-2.4 0s-.7 1.7 0 2.4l10 11.6z" />
+                                            </svg>
+                                            <input type="file" name="file" id="file" class="box__file"
+                                                  multiple="false" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel,text/csv " onchange="angular.element(this).scope().file_changed(this);"/>
+                                            <label for="file" class="w-100 text-center"><strong>Select HERE to choose a file</strong><span
+                                                    class="box__dragndrop"> OR drag it here</span>.</label>
+                                            <button type="submit"
+                                                class="btn btn-primary justify-content-center box__button" ng-show = "IsVisiblebtn" ng-click="uploadFile($event)" data-toggle="modal" data-target="#adminrosterImportProcess">Upload file</button>
+                                        </div>
+                                        <div class="box__uploading w-100 text-center"><img src="animation.svg" /></div>
+                                        <div class="box__success w-100 text-center">Done! </div>
+                                        <div class="box__error w-100 text-center">Error! <span></span>. Try again!</div>
+                                    </form>
+                                        <div class="text-left">
+                                        <p class="font-weight-bold">Pro Tips:</p>
+                                        <p>A. All fields are mandatory with the exception of the driver ID. You can edit any of the fields after users have been created. </p>
+                                        <p>B. Please use the proper date format. If the Activation Date is December 11, 2019 it should be entered as 12/11/2019.</p>
+                                        <p>C. Use two letter abbreviations when entering states, e.g. Colorado = CO</p>
+                                        <p>D. Remember the old saying garbage in garbage out, so recheck your data before uploading.</p>
+                                        <p>
+                                        Keep imports to 100 new drivers or less at once. If importing more 100 new drivers repeat the upload process or contact your Account Manager.
+                                        </p>
+                                    </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <div class="modal fade" id="removeBackDrop" >
+
+        </div>
+       
+        <!-- The Import file Modal -->
+        <div class="modal fade adminrosterImportProcess" tabindex="-1" role="dialog"
+            aria-labelledby="adminrosterImportProcess" id="adminrosterImportProcess">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content rounded-0">
+                    <button type="button" class="close popup-close-btn" data-dismiss="modal" aria-label="Close" >
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <div class="modal-body text-center">
+                        <h4 class="fileupload-title"><span>Importing is in process.</span></h4><br />
+                        <h3 class="fileupload-title"><span>It may take 10 - 20 seconds to complete the import</span></h3>
+                        <div class="w-100">
+                            <img src="{!URLFOR($Resource.EmcCSS,'emc-design/assets/images/adminroster-importfile-loader.svg')}" width="15%" class="img-fluid"
+                                alt="Admin roster import file loader" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade error-log" tabindex="-1" role="dialog"
+            aria-labelledby="error-log" id="errorlog" >
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content rounded-0">
+                    <button type="button" class="close popup-close-btn" data-dismiss="modal" aria-label="Close" ng-click="hideErrorModal()">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <div class="modal-body text-center">
+                        <h4 class="fileupload-title"><span>Imported file errors</span></h4>
+                        <table id="error-table" class="table table-striped dt-responsive nowrap" cellspacing="0" width="100%" ng-cloak="true">
+                            <thead class="">
+                                <tr>
+                                    <th>
+                                        Employee Id
+                                    </th>
+                                    <th>
+                                        Description
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody dir-paginate="key in importedFileErrors | itemsPerPage:5" pagination-id="error">
+                                <tr>
+                                    <td >
+                                        <span ng-if="$index > 0 && importedFileErrors[$index -1].employeeId != key.employeeId">{{key.employeeId}}</span>
+                                        <span ng-if="$index == 0 ">{{key.employeeId}}</span>
+                                    </td>
+                                    <td> 
+                                        {{key.errorMessge}}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <dir-pagination-controls max-size="5" direction-links="true" boundary-links="true" autoHide="true" responsive="true" class="pull-right" pagination-id="error"></dir-pagination-controls>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="fade modal-backdrop" ></div>
+
+        <!-- Duplicate Record Modal START-->
+        <div class="modal fade duplicate-log" tabindex="-1" role="dialog"
+            aria-labelledby="duplicate-log" id="duplicatelog" >
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content rounded-0">
+                    <button type="button" class="close popup-close-btn" data-dismiss="modal" aria-label="Close" ng-click="hideErrorModal()">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <div class="modal-body text-center">
+                        <h4 class="fileupload-title"><span>Duplicate data found</span></h4>
+                        <table id="error-table" class="table table-striped dt-responsive nowrap" cellspacing="0" width="100%" ng-cloak="true">
+                            <thead class="">
+                                <tr>
+                                    <th>
+                                        Employee Id
+                                    </th>
+                                    <th>
+                                        Email
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody dir-paginate="key in importedFileErrors | itemsPerPage:5">
+                                <tr>
+                                    <td >
+                                        <span ng-if="$index > 0 && importedFileErrors[$index -1].employeeId != key.employeeId">{{key.employeeId}}</span>
+                                        <span ng-if="$index == 0 ">{{key.employeeId}}</span>
+                                    </td>
+                                    <td> 
+                                        {{key.errorMessge}}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <dir-pagination-controls max-size="5" direction-links="true" boundary-links="true" autoHide="true" responsive="true" class="pull-right"></dir-pagination-controls>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Duplicate Record Modal END-->
+        <apex:include pageName="EMC_Common_footer"/>
+           <!-- for cellphone field masking -->
+          <script src= "https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.js"></script>
+          <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+          <!-- End of cellphone field masking -->
+        <script type="text/javascript">
+            $(document).ready(function () {
+                let day60today = new Date();
+                console.log("Date",day60today);
+                day60today.setDate(day60today.getDate() - 60);
+                    
+                $('#adminroster-deactivationdatepicker').datepicker('setStartDate',day60today);
+                $('#adminroster-lastpaydatepicker').datepicker('setStartDate',new Date());
+
+                var drivingStates = JSON.parse('{!DrivingStates}');
+                var isFirst = true;
+                
+                $('input').on('beforeItemAdd', function(event) {
+                    
+                    if(drivingStates.indexOf(event.item.toUpperCase()) == -1){
+                        event.cancel = true;
+
+                        angular.element("#theBody").scope().showToast('<b>' +event.item.toUpperCase() + '</b> is a invalid state. Please enter an valid state.');
+                    } else {
+                        if(event.item != event.item.toUpperCase()) {
+                            event.cancel = true;
+                            $(this).tagsinput('add', event.item.toUpperCase());
+                        }
+                    }
+                });
+
+                $('.box__input').bind('drop', function(evt){
+                    evt.stopPropagation();
+                    evt.preventDefault();
+                    
+                    let filetype = '.csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel,text/csv';
+                    if(evt.originalEvent.dataTransfer.files.length > 1) {
+                        angular.element('#theBody').scope().showToast('Please select only one file.');
+                        return;
+                    }
+                    var files = evt.originalEvent.dataTransfer.files;
+                    if(filetype.indexOf(files[0].type) == -1) {
+                        angular.element('#theBody').scope().showToast('Please select valid file.');
+                        return;
+                    }
+                    angular.element('#theBody').scope().loadDropfile(files);
+                    $('#file').files = files;
+                    $('#file').siblings()[1].innerHTML = files[0].name;
+                })
+            });
+
+            function loaddatepicker(deactivateDate, lastPayDate) {
+                if(deactivateDate != null) {
+                    let deactivationdate = new Date(deactivateDate);
+                    let day60today = new Date();
+                    day60today.setDate(day60today.getDate() - 60);
+                    
+                    $('#adminroster-deactivationdatepicker').datepicker('setStartDate',day60today);
+
+                    if(deactivationdate < day60today) {
+                        $('#adminroster-deactivationdatepicker').datepicker('setStartDate',deactivationdate);
+                    }
+                    
+                    $("#adminroster-deactivationdatepicker").datepicker( "setDate",deactivationdate );
+                    $('#adminroster-lastpaydatepicker').datepicker('setStartDate',new Date());
+
+                    if(lastPayDate != null ){
+                        
+                        if(new Date(lastPayDate) < new Date()) {
+                            $('#adminroster-lastpaydatepicker').datepicker('setStartDate',new Date(lastPayDate));
+                            
+                        }  
+                        $("#adminroster-lastpaydatepicker").datepicker( "setDate",new Date(lastPayDate) );
+                    } 
+                } else {
+                    let day60today = new Date();
+                    day60today.setDate(day60today.getDate() - 60);
+                    $('#adminroster-deactivationdatepicker').datepicker('setStartDate',day60today);
+                    $('#adminroster-lastpaydatepicker').datepicker('setStartDate',new Date());
+                   
+                    if(lastPayDate != null) {
+                        if(new Date(lastPayDate) < new Date()) {
+                            
+                            $('#adminroster-lastpaydatepicker').datepicker('setStartDate',new Date(lastPayDate));
+                        }
+                        $("#adminroster-lastpaydatepicker").datepicker( "setDate",new Date(lastPayDate) );
+                    }
+                }
+            }
+
+            function c(msg) {
+                //console.log(msg);
+            }
+            $(function() {
+                $('.numinput').on('input', function() {
+                    this.value = this.value
+                      .replace(/[^\d.]/g, '')             // numbers and decimals only
+                      .replace(/(^\.*)\./g, '$1')          // single dot retricted
+                      .replace(/(^[\d]{4})[\d]/g, '$1')   // not more than 4 digits at the beginning
+                      .replace(/(\..*)\./g, '$1')          // decimal can't exist more than once
+                      .replace(/(\.[\d]{2})./g, '$1');    // not more than 2 digits after decimal
+                  });
+
+
+                //   $('.cellphoneinput').on('input',function(){
+                //     this.value = this.value
+                //          .replace(/[^\d]/g,'')  // numbers only
+                //          .replace(/(^[\d]{10})[\d]/g, '$1'); //  not more than 10 digits
+                //   });
+                  
+                 
+
+                  $('.mileageinput').on('input', function() {
+                    this.value = this.value
+                      .replace(/[^\d.]/g, '')             // numbers and decimals only
+                      .replace(/(^\.*)\./g, '$1')                 // single dot is restricted
+                      .replace(/(^[\d]{6})[\d]/g, '$1')   // not more than 4 digits at the beginning
+                      .replace(/(\..*)\./g, '$1')         // decimal can't exist more than once
+                      .replace(/(\.[\d]{2})./g, '$1');    // not more than 2 digits after decimal
+                  });
+
+                 
+            });
+        </script>
+       
+    </body>
+</apex:page>
