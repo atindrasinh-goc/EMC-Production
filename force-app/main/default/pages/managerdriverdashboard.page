@@ -8,6 +8,9 @@
             <script src="https://gitcdn.github.io/bootstrap-toggle/2.1.0/js/bootstrap-toggle.min.js"></script>
             <script src="https://angular-ui.github.io/bootstrap/ui-bootstrap-tpls-0.9.0.js"></script>
             <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+            <!-- Added By Megha - 31/03/2020 -->
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.15/lodash.min.js"></script>
+            <!-- Added By Megha - 31/03/2020 -->
             <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet" />
             <!-- for excel download directive-->
             <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.8.1/jszip.js"></script>
@@ -180,8 +183,14 @@
                  .mr-11{
                     margin-right: 14px !important;
                 }
+                .w-10rem{
+                     width: 10rem;
+                }
                 .mr-12{
                     margin-right: 12px !important;
+                }
+                .syncMileageBtn{
+                     font-size: 12px !important;
                 }
                  /*AI-000206 - Ends*/
             </style>
@@ -295,6 +304,7 @@
                                 scope.total = 0;
                                 scope.totalvariablerate = 0;
                                 var lstInd = scope.lastIndex;
+                                var count = 0;
                                 let tl = 0;
                                 let tv = 0;
                                 
@@ -320,6 +330,22 @@
                                     scope.lastIndex = i + 1;
                                 }
                                 
+                                //AI-000427 --> Starts
+
+                                angular.forEach(scope.showData, function(item) {
+                                        if(item.isSelected || item.isChecked){  
+                                            count++;
+                                        }
+                                });
+
+                                if(count == 0){
+                                         scope.displayBtn = false;   
+                                }
+                                else{
+                                         scope.displayBtn = true;
+                                }
+
+                                 //AI-000427 --> Ends
                                 scope.total = tl.toFixed(2);
                                 scope.totalvariablerate = tv.toFixed(2);
                                 scope.currentPage++;
@@ -331,6 +357,7 @@
                                 let tl = 0;
                                 let tv = 0;
                                 var lstInd = scope.lastIndex;
+                                var count = 0;
                                 for (var i = scope.lastIndex - (scope.itemPerPage*2); i < lstInd - scope.itemPerPage; i++) {
                                  let isSearch = scope.searchedArray.length>0?true:false
                                     if(isSearch){
@@ -352,6 +379,23 @@
                                     }
                                     scope.lastIndex = i + 1;
                                 }
+
+                                //AI-000427 --> Starts
+
+                                angular.forEach(scope.showData, function(item) {
+                                        if(item.isSelected || item.isChecked){  
+                                            count++;
+                                        }
+                                });
+
+                                if(count == 0){
+                                         scope.displayBtn = false;   
+                                }
+                                else{
+                                         scope.displayBtn = true;
+                                }
+
+                                 //AI-000427 --> Ends
                                 scope.total = tl.toFixed(2);
                                 scope.totalvariablerate = tv.toFixed(2);
                                 scope.currentPage--;
@@ -772,7 +816,7 @@
                                     if(scope.IsAllChecked || scope.IsAllCheckedFlag ){
                                         arr = scope.model.mileageList;
                                     }else{
-                                        arr = scope.showData;
+                                        arr = scope.model.mileageList;
                                     }
                                     
                                     angular.forEach(arr, function(item) {
@@ -856,7 +900,7 @@
                                     
                                 };
                             },
-                            template: '<div class="modal fade driver-dashboard-monthrecord show in" tabindex="-1" role="dialog"aria-labelledby="driver-dashboard-monthrecord" id="driver-dashboard-monthrecord"><div class="modal-dialog modal-xl modal-dialog-centered"><div class="modal-content rounded-0"><button type="button" class="close popup-close-btn" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button><div class="modal-body"><h4 ng-model="month">{{model.clickedMonth}}</h4><div class="modal-divider"></div><div class="table-responsive"><div id="example_filter" class="dataTables_filter pull-right d-block" ng-show="showmanagermodalsearchbar"><div class="input-group w-85" ><i id="filtericon" class="fa fa-search" ng-if="search.length===0"></i><input class="form-control py-2 border-right-0 border" type="search" ng-model="search" ng-change="updatePagination()" placeholder="Search..." aria-controls="example" id="example-search-input" /></div></div><table id="driver-dashbord-month-model" class="table table-striped dt-responsive nowrap no-footer dataTable" cellspacing="0" width="100%"><thead><tr><th ng-click="sort(\'tripdate\')">Trip Date<span ng-show="sortKey == \'tripdate\'" class="sort-icon pull-right" ng-class="{\'fa fa-chevron-up\':reverse,\'fa fa-chevron-down\':!reverse}"></span></th><th ng-click="sort(\'origin\')">Origin<span class="sort-icon pull-right" ng-class="{\'fa fa-chevron-up\':reverse,\'fa fa-chevron-down\':!reverse}" ng-show="sortKey == \'origin\'"></span></th><th ng-click="sort(\'destination\')">Dest.<span class="sort-icon pull-right" ng-class="{\'fa fa-chevron-up\':reverse,\'fa fa-chevron-down\':!reverse}" ng-show="sortKey == \'destination\'"></span></th><th ng-click="sort(\'submitteddate\')">Submitted<span class="sort-icon pull-right" ng-class="{\'fa fa-chevron-up\':reverse,\'fa fa-chevron-down\':!reverse}" ng-show="sortKey == \'submitteddate\'"></span></th><th ng-click="sort(\'approveddate\')">Approved<span class="sort-icon pull-right" ng-class="{\'fa fa-chevron-up\':reverse,\'fa fa-chevron-down\':!reverse}" ng-show="sortKey == \'approveddate\'"></span></th><th ng-click="sort(\'mileage\')">Mileage<span class="sort-icon pull-right" ng-class="{\'fa fa-chevron-up\':reverse,\'fa fa-chevron-down\':!reverse}" ng-show="sortKey == \'mileage\'"></span></th><th ng-click="sort(\'variableamount\')">Variable Amount<span class="sort-icon pull-right" ng-class="{\'fa fa-chevron-up\':reverse,\'fa fa-chevron-down\':!reverse}" ng-show="sortKey == \'variableamount\'"></span></th><th><button class="btn btn-primary">Approve <input type="checkbox" ng-click="CheckUncheckAll()" ng-model="IsAllChecked" ng-show="checkAllShowApprove"/></button></th><th><button class="btn btn-third">Flag </span><input type="checkbox" ng-show="checkAllShowFlag" ng-click="CheckUncheckAllForFlag()" ng-model="IsAllCheckedFlag"></button></th></tr></thead><tbody class="table-a-link"><tr ng-repeat="mil in showData |itemsPerPage:8|filter:search" current-page:"currentPage"><td ng-model="mil.tripdate">{{ mil.tripdate}}</td><td ng-model="mil.origin">{{ mil.origin}}</td><td ng-model="mil.destination">{{ mil.destination }}</td><td ng-model="mil.submitteddate">{{ mil.submitteddate }}</td><td ng-model="mil.approveddate">{{mil.approveddate }}</td><td ng-model="mil.mileage">{{ mil.mileage }}</td><td ng-model="mil.variableamount" id="modalvariableid">${{ mil.variableamount }}</td><td ng-model="mil.status"><div ng-model="mil.status" ng-if="mil.status !=\'Approved\' && mil.mileage > \'0\'"></div><div class="pull-right1 mr-11" ng-if="mil.status !=\'Approved\' && mil.mileage > \'0\'"><input type="checkbox" ng-model="mil.isSelected" class="myteamcheck" ng-click="CheckUncheckHeader();"></div></td><td ng-model="mil.status"><div ng-model="mil.status" ng-if="mil.mileage > \'0\'"></div><div class="pull-right1 mr-11" ng-if="mil.mileage > \'0\'"><input type="checkbox" ng-model="mil.isChecked"  class="flagcheck" ng-click="CheckUncheckHeaderForFlag();"></div></td></tr><tr ng-if="showData.length == 0"><td colspan="9" class="table-nodata">No Records Available</td></tr></tbody><tfoot ng-if="displayDownloadBtn"><tr><th scope="row">Total</th><th colspan="4"> </th><th>{{total | number:2}} / {{totalMileage | number:2}}</th><th>${{totalvariablerate}} / ${{totalVariableAmount}}</th><th colspan="2"></th></tr></tfoot></table></div></div>  <div class="modal-footer"><div class="col-md-6" ng-if="displayDownloadBtn">Page {{currentPage}} of {{maxPage}} </div><div class="col-md-6"><ul ng-if="displayDownloadBtn" class="pagination float-right paginationformodal"><li class="page-item " ng-class="{\'disable-pagination\':currentPage === 1}"><a class="page-link" ng-click="previous()">Previous</a></li><li class="page-item"><a class="page-link" >{{currentPage}}</a></li><li class="page-item" ng-class="{\'disable-pagination\':currentPage === maxPage}"><a class="page-link" ng-click="next()" href="#">Next</a></li></ul><div class="paginationformodaldownloadbutton"><div excel-export="true" export-data="data()" ng-show="displayDownloadBtn" file-name="{{model.fileName}}"/><button class="btn btn-secondary float-right" ng-click="onClick();" ng-show="displayBtn">Submit</button></div></div></div></div></div></div><div>'
+                            template: '<div class="modal fade driver-dashboard-monthrecord show in" tabindex="-1" role="dialog"aria-labelledby="driver-dashboard-monthrecord" id="driver-dashboard-monthrecord"><div class="modal-dialog modal-xl modal-dialog-centered"><div class="modal-content rounded-0"><button type="button" class="close popup-close-btn" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button><div class="modal-body"><h4 ng-model="month">{{model.clickedMonth}}</h4><div class="modal-divider"></div><div class="table-responsive"><div id="example_filter" class="dataTables_filter pull-right d-block" ng-show="showmanagermodalsearchbar"><div class="input-group w-85" ><i id="filtericon" class="fa fa-search" ng-if="search.length===0"></i><input class="form-control py-2 border-right-0 border" type="search" ng-model="search" ng-change="updatePagination()" placeholder="Search..." aria-controls="example" id="example-search-input" /></div></div><table id="driver-dashbord-month-model" class="table table-striped dt-responsive nowrap no-footer dataTable" cellspacing="0" width="100%"><thead><tr><th ng-click="sort(\'tripdate\')">Trip Date<span ng-show="sortKey == \'tripdate\'" class="sort-icon pull-right" ng-class="{\'fa fa-chevron-up\':reverse,\'fa fa-chevron-down\':!reverse}"></span></th><th ng-click="sort(\'origin\')">Origin<span class="sort-icon pull-right" ng-class="{\'fa fa-chevron-up\':reverse,\'fa fa-chevron-down\':!reverse}" ng-show="sortKey == \'origin\'"></span></th><th ng-click="sort(\'destination\')">Dest.<span class="sort-icon pull-right" ng-class="{\'fa fa-chevron-up\':reverse,\'fa fa-chevron-down\':!reverse}" ng-show="sortKey == \'destination\'"></span></th><th ng-click="sort(\'submitteddate\')">Submitted<span class="sort-icon pull-right" ng-class="{\'fa fa-chevron-up\':reverse,\'fa fa-chevron-down\':!reverse}" ng-show="sortKey == \'submitteddate\'"></span></th><th ng-click="sort(\'approveddate\')">Approved<span class="sort-icon pull-right" ng-class="{\'fa fa-chevron-up\':reverse,\'fa fa-chevron-down\':!reverse}" ng-show="sortKey == \'approveddate\'"></span></th><th ng-click="sort(\'mileage\')">Mileage<span class="sort-icon pull-right" ng-class="{\'fa fa-chevron-up\':reverse,\'fa fa-chevron-down\':!reverse}" ng-show="sortKey == \'mileage\'"></span></th><th ng-click="sort(\'variableamount\')">Variable Amount<span class="sort-icon pull-right" ng-class="{\'fa fa-chevron-up\':reverse,\'fa fa-chevron-down\':!reverse}" ng-show="sortKey == \'variableamount\'"></span></th><th style="width:3vw"><button class="btn btn-primary">Approve <input type="checkbox" ng-click="CheckUncheckAll()" ng-model="IsAllChecked" ng-show="checkAllShowApprove"/></button></th><th style="width:3vw"><button class="btn btn-third">Flag </span><input type="checkbox" ng-show="checkAllShowFlag" ng-click="CheckUncheckAllForFlag()" ng-model="IsAllCheckedFlag"></button></th></tr></thead><tbody class="table-a-link"><tr ng-repeat="mil in showData |itemsPerPage:8|filter:search" current-page:"currentPage"><td ng-model="mil.tripdate">{{ mil.tripdate}}</td><td ng-model="mil.origin">{{ mil.origin}}</td><td ng-model="mil.destination">{{ mil.destination }}</td><td ng-model="mil.submitteddate">{{ mil.submitteddate }}</td><td ng-model="mil.approveddate">{{mil.approveddate }}</td><td ng-model="mil.mileage">{{ mil.mileage }}</td><td ng-model="mil.variableamount" id="modalvariableid">${{ mil.variableamount }}</td><td ng-model="mil.status"><div ng-model="mil.status" ng-if="mil.status !=\'Approved\' && mil.mileage > \'0\'"></div><div class="pull-right1 mr-11" ng-if="mil.status !=\'Approved\' && mil.mileage > \'0\'"><input type="checkbox" ng-model="mil.isSelected" class="myteamcheck" ng-click="CheckUncheckHeader();"></div></td><td ng-model="mil.status"><div ng-model="mil.status" ng-if="mil.mileage > \'0\'"></div><div class="pull-right1 mr-11" ng-if="mil.mileage > \'0\'"><input type="checkbox" ng-model="mil.isChecked"  class="flagcheck" ng-click="CheckUncheckHeaderForFlag();"></div></td></tr><tr ng-if="showData.length == 0"><td colspan="9" class="table-nodata">No Records Available</td></tr></tbody><tfoot ng-if="displayDownloadBtn"><tr><th scope="row">Total</th><th colspan="4"> </th><th>{{total | number:2}} / {{totalMileage | number:2}}</th><th>${{totalvariablerate}} / ${{totalVariableAmount}}</th><th colspan="2"></th></tr></tfoot></table></div></div>  <div class="modal-footer"><div class="col-md-6" ng-if="displayDownloadBtn">Page {{currentPage}} of {{maxPage}} </div><div class="col-md-6"><ul ng-if="displayDownloadBtn" class="pagination float-right paginationformodal"><li class="page-item " ng-class="{\'disable-pagination\':currentPage === 1}"><a class="page-link" ng-click="previous()">Previous</a></li><li class="page-item"><a class="page-link" >{{currentPage}}</a></li><li class="page-item" ng-class="{\'disable-pagination\':currentPage === maxPage}"><a class="page-link" ng-click="next()" href="#">Next</a></li></ul><div class="paginationformodaldownloadbutton"><div excel-export="true" export-data="data()" ng-show="displayDownloadBtn" file-name="{{model.fileName}}"/><button class="btn btn-secondary float-right" ng-click="onClick();" ng-show="displayBtn">Submit</button></div></div></div></div></div></div><div>'
                         };
                     }
                 ]);
@@ -936,13 +980,14 @@
 
                 app.controller('ManagerDashboardController', ['$scope','$filter','$modal',
                     function($scope,$filter,$modal) {
-                        debugger
+                        
                         var url_string = $(location).attr("href");
                         var url = new URL(url_string);
                         $scope.manid = url.searchParams.get("manid");
                         $scope.accid = url.searchParams.get("accid");
                         $scope.id = url.searchParams.get("id");
                         $scope.showteam = url.searchParams.get("showteam");
+                        $scope.syncMileageLabel = '{!($Label.unapproveMileageMessage)}';
                         $('#spinner').hide();
                         $scope.years = {!Last2Years};
                         $scope.years.sort(function(a,b){
@@ -958,7 +1003,7 @@
                                      return 0; //default return value (no sorting)
                                  }
                         })
-                        console.log($scope.years);
+                        $scope.lastYear = _.first($scope.years);
                         $scope.reimbursementDialog = new MileagesofReimbursements(false);
                         $scope.search="";
                         $scope.IsAllChecked = false;
@@ -1339,6 +1384,46 @@
                             );
                         }
 
+
+                        $scope.syncMileages = function (month, fuel, maintainsAndTyres, empReID, mpg) {
+                                $('#spinner').show();
+                                $scope.getMonth = month;
+                                $scope.getYear = $scope.selectedYear;
+                                $scope.getFuel = fuel;
+                                $scope.getmaintTyre = maintainsAndTyres;
+                                $scope.empReID = empReID;
+                                $scope.mpg = mpg;
+                                Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.ManagerDriverDashboardController.UpdateReimbursementStatus}', $scope.empReID,
+                                    function (result, event) {
+                                        if (event.status) {
+                                            Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.ManagerDriverDashboardController.TripCallout}', $scope.id, $scope.getMonth, $scope.getYear, $scope.getFuel, $scope.getmaintTyre, $scope.empReID, $scope.mpg,
+                                                function (result, event) {
+                                                    if (event.status) {
+                                                        $scope.$modalInstance = $modal.open({
+                                                            template: '<button type="button" ng-click="cancel()" class="close popup-close-btn" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button><div class="modal-body text-center"><div class="checkhead"><h4>{{syncMileageLabel}}</h4></div><div class="check-in-info"><p></p></div><div class="check-submit"><button type="button" ng-click="okforSync()" class="btn btn-primary" data-dismiss="modal">OK</button></div></div>',
+
+                                                            scope: $scope
+                                                        });
+                                                        $('#spinner').hide();
+                                                    }
+                                                    else {
+                                                        toastr.error('Something went wrong');
+                                                    }
+                                                }, { escape: false }
+                                            );
+                                        }
+                                        else {
+                                            toastr.error('Something went wrong');
+                                        }
+
+                                    }
+                                );
+                        }
+
+                        $scope.okforSync = function () {
+                            $scope.$modalInstance.close();
+                            location.reload();
+                        }
                         $scope.sortKey = 'intmonth';    //set the sortKey to the param passed   
                         $scope.reverse = true;
                         $scope.sort = function(keyname){
@@ -1479,6 +1564,7 @@
                                                     width="100%">
                                                     <thead>
                                                         <tr>
+                                                            <th ng-if="yr == lastYear"></th>
                                                             <th >Month
                                                                 <span class="sort-icon pull-right" ></span> 
                                                             </th>
@@ -1502,6 +1588,7 @@
                                                     </thead>
                                                     <tbody class="driver-dashboard-table table-a-link">
                                                         <tr dir-paginate="ml in mileages |orderBy:sortKey:reverse |itemsPerPage:12">
+                                                            <td class="w-10rem" ng-if="yr == lastYear"><button class="btn btn-primary syncMileageBtn" ng-click="syncMileages(ml.month,ml.fuel,ml.maintainsAndTyres,ml.employeeReimbursementId,ml.mpg)" ng-if="$first && yr == lastYear">Mileage Sync</button></td>
                                                             <td ng-click="openmodal(ml.month)"><a>{{ml.month}}</a></td>
                                                             <td ng-if="ml.fuel != null && ml.fuel != ''">${{ml.fuel}}</td>
                                                             <td ng-if="ml.fuel == null || ml.fuel == ''"></td>

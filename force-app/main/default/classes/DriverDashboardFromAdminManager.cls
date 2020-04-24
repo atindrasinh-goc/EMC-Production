@@ -136,7 +136,7 @@ public  class DriverDashboardFromAdminManager
     {   
         obj_currect_contact = [SELECT id, Name, MailingPostalCode, MailingState, MailingCity, 
                                         Fixed_Amount__c, compliancestatus__c, Car_Image__c, Account.Name, Account.Logo_Document_Id__c, 
-                                        Vehicle_Type__c,Insurance_Attachment_Id__c 
+                                        Vehicle_Type__c,Insurance_Attachment_Id__c, Account.Triplog_API__c, Email 
                                     FROM Contact 
                                     WHERE id =: getDriverid()];
         return String.escapeSingleQuotes(JSON.serialize(obj_currect_contact));
@@ -158,7 +158,7 @@ public  class DriverDashboardFromAdminManager
     @RemoteAction
     public static String getMileages(String clickedMonth,String clickedYear,String did)
     {
-         return String.escapeSingleQuotes(WrapperUtils.getMileages(clickedMonth,clickedYear,did));
+        return String.escapeSingleQuotes(WrapperUtils.getMileages(clickedMonth,clickedYear,did));
     } 
     @RemoteAction
     public static List<String> getCompliance(String did)
@@ -172,4 +172,18 @@ public  class DriverDashboardFromAdminManager
     {
         return WrapperUtils.getPacketandMeetingDetails(did);
     }   
+
+    //method is use for fatch mileages from triplog 
+    //AI-000429
+    @RemoteAction
+    public static void TripCallout(Id driverId, String month, String year, String fuel, String maintTyre, Id empReID,String mpg){
+        WrapperUtils.TripCallout(driverId,month,year,fuel,maintTyre,empReID,mpg);
+    }
+
+    //method is use for change reimbursement status 
+    //AI-000429
+    @RemoteAction
+    public static void UpdateReimbursementStatus(Id empReID){
+        WrapperUtils.UpdateReimbursementStatus(empReID);
+    }
 }

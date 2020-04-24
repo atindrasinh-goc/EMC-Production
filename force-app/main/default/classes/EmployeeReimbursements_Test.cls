@@ -8,6 +8,11 @@ private class EmployeeReimbursements_Test {
         obj.variableRate = '1501.9167';
         obj.totalReimbursements = '1500.0000';
         obj.month = '02-2019';
+        obj.intmonth = 02-2019;
+        obj.status = 'Open';
+        obj.isSelected = true;
+        obj.maintainsAndTyres = 'maintainsAndTyres';
+        obj.mpg = 'mpg';
         obj.fuel = '1.00';      
         obj.mileage = '10';
         obj.approveddate = '05/12/19';

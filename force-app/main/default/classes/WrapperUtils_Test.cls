@@ -198,7 +198,9 @@ public class WrapperUtils_Test {
         WrapperUtils.getLast2Years();
         WrapperUtils.getReimbursementsListClone(obj_Driver_list[0].id);
         WrapperUtils.approveReimbursements('2019',obj_Driver_list[0].id,obj_Account.id,JSON.serialize(obj_EmployeeReimbursements_list2));
-        
+        WrapperUtils.updateLockDate(obj_Account.id,'12-21-2020');
+        //WrapperUtils.approveMileagesClone1(JSON.serialize(obj_list_mileages));
+        WrapperUtils.TripCallout(obj_Driver_list[0].id,'February','2020','1.0','12',obj_Employee_Reimbursement_list[0].id,'2.1');
         WrapperUtils.readFromFileInchunk('test',att.Name,String.valueOf(att.Id),String.valueOf(obj_Driver_list[0].Id),String.valueOf(obj_Account.Id),null);
     }
     public static testmethod void wrapperUtilstestMethod1() {
@@ -407,7 +409,7 @@ public class WrapperUtils_Test {
         WrapperUtils.getLast2Years();
         WrapperUtils.getReimbursementsListClone(obj_Driver_list[0].id);
         WrapperUtils.approveReimbursements('2019',obj_Driver_list[0].id,obj_Account.id,JSON.serialize(obj_EmployeeReimbursements_list2));
-        
+        WrapperUtils.updateLockDate(obj_Account.id,'12-21-2020');
         WrapperUtils.readFromFileInchunk('test',att.Name,String.valueOf(att.Id),String.valueOf(obj_Driver_list[0].Id),String.valueOf(obj_Account.Id),null);
     }
     public static testmethod void wrapperUtilstestMethod2() {
@@ -612,7 +614,7 @@ public class WrapperUtils_Test {
         WrapperUtils.getLast2Years();
         WrapperUtils.getReimbursementsListClone(obj_Driver_list[0].id);
         WrapperUtils.approveReimbursements('2019',obj_Driver_list[0].id,obj_Account.id,JSON.serialize(obj_EmployeeReimbursements_list2));
-        
+        WrapperUtils.updateLockDate(obj_Account.id,'12-21-2020');
         WrapperUtils.readFromFileInchunk('test',att.Name,String.valueOf(att.Id),String.valueOf(obj_Driver_list[0].Id),String.valueOf(obj_Account.Id),null);
     }
 }

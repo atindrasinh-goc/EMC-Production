@@ -182,6 +182,19 @@ public with sharing class AdminManagerDriverDashboardController
     public static List<String> getPacketandMeeting(String did)
     {
         return WrapperUtils.getPacketandMeetingDetails(did);
-    }   
+    }
+    
+    //method is use for fatch mileages from triplog 
+    //AI-000429
+    @RemoteAction
+    public static void TripCallout(Id driverId, String month, String year, String fuel, String maintTyre, Id empReID,String mpg){
+        WrapperUtils.TripCallout(driverId,month,year,fuel,maintTyre,empReID,mpg);
+    }
 
+    //method is use for change reimbursement status 
+    //AI-000429
+    @RemoteAction
+    public static void UpdateReimbursementStatus(Id empReID){
+        WrapperUtils.UpdateReimbursementStatus(empReID);
+    }
 }

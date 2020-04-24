@@ -434,7 +434,7 @@
                                    if(event.status && result != null) 
                                     {
                                         if(result != ''){
-                                            var resultdata = result.replace(/\\/g,'');
+                                            var resultdata = result; //result.replace(/\\/g,'');
                                             var mileageList = JSON.parse(resultdata[0]);
                                             $scope.totalMileage = JSON.parse(resultdata[1]);
                                             $scope.totalVariableAmount = JSON.parse(resultdata[2]);

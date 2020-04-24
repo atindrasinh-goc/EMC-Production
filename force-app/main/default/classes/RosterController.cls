@@ -53,10 +53,13 @@ global without sharing class RosterController
     @param String employee details. 
     */
     @RemoteAction
-    public static String editInlineNewEmployee(String listofemployee,String accid,String contactid)
+    public static ResultResponse editInlineNewEmployee(String listofemployee,String accid,String contactid)
     {
         //System.debug(listofemployee);
-         String emplist ='Success';
+        ResultResponse result = new ResultResponse();
+        result.hasError = false;
+        result.message = '';
+
         if(listofemployee!=null)
         {
             system.debug('inside roster controller');
@@ -86,20 +89,25 @@ global without sharing class RosterController
                     update updateEmployeeList;
                 } catch (Exception e){
                     //string type = name;
-                   return getExcetionTypes(e.getTypeName(),e.getMessage(),e.getlinenumber());
+                    system.debug('-------++++++++++++++++');
+                    result.hasError = true;
+                    result.message = getExcetionTypes(e.getTypeName(),e.getMessage(),e.getlinenumber());
+                    return result;
                 }
                
                 
-                emplist = getlistAllEmployees(accid,contactid);  
+                //result.result = getlistAllEmployees(accid,contactid);  
                 //System.debug('updated employee list :- ' +emplist);
             
             }
+            system.debug('deactivatedEmployees.size()'+deactivatedEmployees.size());
+            system.debug('deactivatedEmployees.size()'+deactivatedEmployees);
             if(deactivatedEmployees.size()>0)
             {
                  Database.executeBatch(new DeActivatedUserBatch(deactivatedEmployees),1);
             }
         }
-        return emplist;
+        return result;
     }
 
     public static void sendExceptionMails(String message,string convertedmsg){
@@ -166,12 +174,17 @@ global without sharing class RosterController
     @param String employee details. 
     */
     @RemoteAction
-    public static String manageEmployee(String addNewEmployee,String accid,String contactid)
+    public static ResultResponse manageEmployee(String addNewEmployee,String accid,String contactid)
     {
-       
+        ResultResponse result = new ResultResponse();
+        result.hasError = false;
+        result.message = '';
+
         List<EmployeeDetails> employeeList = new List<EmployeeDetails>();
+        System.debug('employeeList:--'+addNewEmployee);
+        System.debug('employeeList:--+++'+(List<EmployeeDetails>)Json.deserialize(addNewEmployee,List<EmployeeDetails>.class));
         employeeList = (List<EmployeeDetails>)Json.deserialize(addNewEmployee,List<EmployeeDetails>.class);
-        System.debug('employeeList:--');
+        
         System.debug('employeeList:--'+employeeList.size());
 
             if(employeeList.size() > 0) 
@@ -192,8 +205,10 @@ global without sharing class RosterController
                     catch(Exception e)
                     {
                         system.debug('inside catch');
-                        return getExcetionTypes(e.getTypeName(),e.getMessage(),e.getlinenumber());
-                        
+                        // return getExcetionTypes(e.getTypeName(),e.getMessage(),e.getlinenumber());
+                        result.hasError = true;
+                        result.message = getExcetionTypes(e.getTypeName(),e.getMessage(),e.getlinenumber());
+                        return result;
                         //sendExceptionMails(e.getMessage()+String.valueOf(e.getlinenumber()),getCustomExceptionMessage('2'));
                     }
                     if(employeeList[0].resetReimbursementLink==true)
@@ -211,7 +226,10 @@ global without sharing class RosterController
                     }
                     catch(Exception e)
                     {
-                        return getExcetionTypes(e.getTypeName(),e.getMessage(),e.getlinenumber());
+                        // return getExcetionTypes(e.getTypeName(),e.getMessage(),e.getlinenumber());
+                        result.hasError = true;
+                        result.message = getExcetionTypes(e.getTypeName(),e.getMessage(),e.getlinenumber());
+                        return result;
                         //return getExcetionTypes(e);                        
                     }
                     // New Code added by natavar on 21/11/2019
@@ -276,10 +294,11 @@ global without sharing class RosterController
                     }*/  
                 }
                 system.debug('outside');
-                return getlistAllEmployees(accid,contactid);
+                // return getlistAllEmployees(accid,contactid);
+                result.result = getlistAllEmployees(accid,contactid); 
             }
-        
-        return 'Fail';
+        // return 'Fail';
+        return result;
     }
 
     public static string getExcetionTypes(String name,String message, Integer lineNumber ){
@@ -299,7 +318,7 @@ global without sharing class RosterController
                     string fied = msg.substringBetween('[',']');
                 }
                 
-                 sendExceptionMails(message+String.valueOf(lineNumber),getCustomExceptionMessage('2'));
+                sendExceptionMails(message+String.valueOf(lineNumber),getCustomExceptionMessage('2'));
                 return getCustomExceptionMessage('2');
             }
         }
@@ -421,7 +440,9 @@ global without sharing class RosterController
     {   
        
         List<EmployeeDetails> employeeList = new List<EmployeeDetails>();
-        for(Contact currentContact:[SELECT id,Accountid,FirstName,Lastname,Email,External_Email__c,Deactivated_Date__c,Role__c,Manager__c,Manager__r.Name,MailingPostalCode,Driving_States__c,MailingState,MailingCity,Employee_ID__c,Activation_Date__c,Vehicle_Type__c,Last_Pay_Date__c,Monthly_Mileage_Limit__c,Added_Date__c,Fixed_Amount__c,compliancestatus__c,Total_Reimbursement__c,IsDeactivated__c,Monthly__c,Sage_100_ID__c,GL_Code__c,App__c,MobilePhone,Phone,Branch_Number__c,Branch_Name__c  FROM Contact WHERE Accountid=:accid]) //Branch_Number__c,Branch_Name__c 
+        for(Contact currentContact:[SELECT id,Accountid,FirstName,Lastname,Email,External_Email__c,Deactivated_Date__c,Role__c,Manager__c,Manager__r.Name,MailingPostalCode,Driving_States__c,MailingState,MailingCity,Employee_ID__c,Activation_Date__c,Vehicle_Type__c,Last_Pay_Date__c,Monthly_Mileage_Limit__c,Added_Date__c,Fixed_Amount__c,compliancestatus__c,Total_Reimbursement__c,IsDeactivated__c,Monthly__c,Sage_100_ID__c,GL_Code__c,App__c,MobilePhone,Phone,Branch_Number__c,Branch_Name__c,Freeze__c  
+                                            FROM Contact 
+                                            WHERE Accountid=:accid]) //Branch_Number__c,Branch_Name__c 
         {              
             //system.debug('currentContact'+currentContact);     
             employeeList.add(WrapperUtils.getEmployeeDetails(currentContact));
@@ -452,7 +473,7 @@ global without sharing class RosterController
         return JSON.serialize(drivingStateList);     
     }
     @RemoteAction
-    public Static String readFromFile(String file,String accountId) {
+    public static String readFromFile(String file,String accountId) {
         //system.debug('file'+file);
         String headerCSV = 'Employee_ID__c,Firstname,LastName,External_Email__c,' + 
                             'Vehicle_Type__c,Role__c,MailingCity,MailingState,' + 
@@ -819,6 +840,64 @@ global without sharing class RosterController
         return resultMessage;
     }
 
+    //AI-000433
+    @RemoteAction
+    public static ResultResponse massFreeze(String listofemployee,Boolean freezeProperty){
+        ResultResponse result = new ResultResponse();
+        result.hasError = false;
+        result.message = '';
+
+        List<String> contactIds = new List<String>();
+        List<Contact> conList = new List<Contact>();
+        Set<Id> UserIds = new Set<ID> ();
+        List<UserLogin> userLogins = new List<UserLogin>();
+        contactIds = (List<String>) System.JSON.deserialize(listofemployee, List<String>.class);
+        
+        for(User currentUser: [SELECT id,ContactId FROM User WHERE ContactId IN: contactIds]) {
+            UserIds.add(currentUser.Id);
+        }
+
+        for(UserLogin ulogin : [SELECT Id, IsFrozen, UserId From UserLogin Where UserId =: UserIds]){
+            if(freezeProperty == true){
+                system.debug('freezeProperty'+freezeProperty);
+                ulogin.IsFrozen = true;
+            }
+            else {
+                system.debug('freezeProperty'+freezeProperty);
+                ulogin.IsFrozen = false;
+            }
+            userLogins.add(ulogin);
+        }
+        
+        for(Contact conObj : [SELECT id,Freeze__c 
+                                        FROM Contact WHERE ID =: contactIds ]){
+            if(freezeProperty == true){
+                system.debug('freezeProperty'+freezeProperty);
+                conObj.Freeze__c = System.today();
+            }
+            else {
+                system.debug('freezeProperty'+freezeProperty);
+                conObj.Freeze__c = null;
+            }
+            conList.add(conObj);
+        }
+
+        if(userLogins.size() > 0 && conList.size() > 0)
+        {
+            try{
+                System.debug('userLogins'+userLogins);
+                System.debug('conList'+conList);
+                update userLogins;
+                update conList;
+            } catch (Exception e){
+                result.hasError = true;
+                result.message = getExcetionTypes(e.getTypeName(),e.getMessage(),e.getlinenumber());
+                return result;
+            }
+        }
+        
+        return result ;
+    }
     //Send Email to Admin
     /*public void senEmailToAdminWithCsv(List<Document> successDoc, List<Document> duplicateDoc) {
         Messaging.EmailFileAttachment attach = new Messaging.EmailFileAttachment();
@@ -879,7 +958,7 @@ global without sharing class RosterController
     public static String editEmployeeDetails(String editUserID) {
         system.debug('editEmployeeDetails');
         Contact loggedinContact = new Contact();
-        query = 'Select id,Name,FirstName,Lastname,Email,External_Email__c,Deactivated_Date__c,Role__c,Manager__c,Manager__r.Name,MailingPostalCode,Driving_States__c,MailingState,MailingCity,Employee_ID__c,Activation_Date__c,Vehicle_Type__c,Last_Pay_Date__c,Monthly_Mileage_Limit__c,Added_Date__c,Fixed_Amount__c,compliancestatus__c,Total_Reimbursement__c,IsDeactivated__c,Monthly__c,Sage_100_ID__c,GL_Code__c,App__c,MobilePhone,Phone,Branch_Name__c,Branch_Number__c from Contact where id=\''+editUserID+'\''; //
+        query = 'Select id,Name,FirstName,Lastname,Email,External_Email__c,Deactivated_Date__c,Role__c,Manager__c,Manager__r.Name,MailingPostalCode,Driving_States__c,MailingState,MailingCity,Employee_ID__c,Activation_Date__c,Vehicle_Type__c,Last_Pay_Date__c,Monthly_Mileage_Limit__c,Added_Date__c,Fixed_Amount__c,compliancestatus__c,Total_Reimbursement__c,IsDeactivated__c,Monthly__c,Sage_100_ID__c,GL_Code__c,App__c,MobilePhone,Phone,Branch_Name__c,Branch_Number__c,Freeze__c from Contact where id=\''+editUserID+'\''; //
         system.debug('query'+query);
         List<EmployeeDetails> employeeList = new List<EmployeeDetails>();
         List<Contact> managerlist = (List<Contact>)ExecuteQueryUtil.getRecordListFromsObject(query);
@@ -936,5 +1015,12 @@ global without sharing class RosterController
             return queryContactbyemailaddress[0].id;
         }
         return 'Fail';
+    }
+
+
+    public class ResultResponse {
+        public Boolean hasError { get; set;}
+        public string message { get; set;}
+        public String result { get; set;}
     }
 }

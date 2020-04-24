@@ -159,6 +159,15 @@
         color: #6c757d;
         text-transform: uppercase;
     }
+    .ml-45{
+        position: absolute;
+        top: 4px;
+        margin-left: 30rem;
+    }
+    .numberSelect{
+        display: inline-block !important;
+        width: 13% !important;
+    }
     .box__dragndrop{
         color: #dddddd !important;
         display: inline-block !important;
@@ -415,7 +424,10 @@
             width: 4vw !important;
         }
         .mr-15{
-            margin-right: 16px;
+            margin-right: 27px;
+        }
+        .mr-23{
+            margin-right: 23px;
         }
         .mr-11 {
             margin-right: 11px !important;
@@ -425,6 +437,9 @@
         }
         .appspan {
             margin-right: 7px !important;
+        }
+        .syncMileageBtn{
+            font-size: 12px !important;
         }
         .btn-primary-approve {
             color: #fff !important;

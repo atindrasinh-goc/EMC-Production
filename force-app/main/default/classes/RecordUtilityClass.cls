@@ -557,7 +557,7 @@ public with sharing class RecordUtilityClass
     }
     public static List<Employee_Mileage__c> getMileagesList()
     {
-        return [Select id,Name,Trip_Date__c,Trip_Origin__c,Fuel_price__c,EmployeeReimbursement__r.Total_Variable_Rate__c,Maintenance_and_Tires__c,Origin_Name__c,Tracing_Style__c,StartTime__c,EndTime__c,Day_Of_Week__c,Destination_Name__c,Trip_Destination__c,Mileage__c,Variable__c,Trip_Status__c,Approved_Date__c,EmployeeReimbursement__c,EmployeeReimbursement__r.month__c,EmployeeReimbursement__r.Contact_Id__c,CreatedDate,Rejected__c,EmployeeReimbursement__r.Total_Pending__c,EmployeeReimbursement__r.Monthly_Variable_Amount__c,EmployeeReimbursement__r.Contact_Id__r.External_Email__c,EmployeeReimbursement__r.Total_Rejected__c,EmployeeReimbursement__r.Total_Mileage__c,Notes__c FROM Employee_Mileage__c];
+        return [Select id,Name,Trip_Date__c,ConvertedEndTime__c,EmployeeReimbursement__r.Mileage_Lock_Date__c,Trip_Origin__c,Fuel_price__c,EmployeeReimbursement__r.Total_Variable_Rate__c,Maintenance_and_Tires__c,Origin_Name__c,Tracing_Style__c,StartTime__c,EndTime__c,Day_Of_Week__c,Destination_Name__c,Trip_Destination__c,Mileage__c,Variable__c,Trip_Status__c,Approved_Date__c,EmployeeReimbursement__c,EmployeeReimbursement__r.month__c,EmployeeReimbursement__r.Contact_Id__c,CreatedDate,Rejected__c,EmployeeReimbursement__r.Total_Pending__c,EmployeeReimbursement__r.Monthly_Variable_Amount__c,EmployeeReimbursement__r.Contact_Id__r.External_Email__c,EmployeeReimbursement__r.Total_Rejected__c,EmployeeReimbursement__r.Total_Mileage__c,Notes__c,ConvertedStartTime__c FROM Employee_Mileage__c];
     } 
     public static List<EmployeeMileages> getallEmployeeMileages(List<Employee_Mileage__c> obj_list_Employee_Mileage)
     {

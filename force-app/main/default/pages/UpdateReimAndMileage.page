@@ -201,22 +201,23 @@ select[multiple], select[size] {
                                                 <div class="form-group">
                                                     <div class="col-md-2">
                                                         <label>
-                                                            Approved Date
-                                                        </label>
-                                                    </div>
-                                                    <div class="col-md-4">
-                                                        <apex:input type="date" styleClass="form-control dummyReimDateClass" value="{!selectedApprovedDate}" />
-                                                    </div> 
-                                                    <div class="col-md-2">
-                                                        <label>
                                                             Status
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
-                                                        <apex:selectList styleClass="form-control dummyReimStatusClass" id="slctlst__reimbersments_status" size="1" multiselect="false" value="{!Status}">
+                                                        <apex:selectList styleClass="form-control dummyReimStatusClass" id="slctlst__reimbersments_status" size="1" multiselect="false" value="{!Status}" onchange="reimStatus()">
                                                             <apex:selectOptions value="{!obj_reimbersments_status}"></apex:selectOptions>
                                                         </apex:selectList>                                                        
-                                                    </div>     
+                                                    </div>  
+                                                    <div class="col-md-2">
+                                                        <label>
+                                                            Approved Date
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <apex:input type="date" styleClass="form-control dummyReimDateClass" value="{!selectedApprovedDate}" onchange="reimDate()"/>
+                                                    </div> 
+                                                      
                                                 </div>
                                             </div>
                                         </div>
@@ -227,7 +228,7 @@ select[multiple], select[size] {
                         <div class="panel-footer"> 
                             <div class="row">
                                 <div class="col-md-3">
-                                    <a class="btn btn-success" onclick="showmodalForReim();">Update Reimbersments</a>
+                                    <a id="updateReimbersment" class="btn btn-success" onclick="showmodalForReim();">Update Reimbersments</a>
                                     <a class="btn btn-primary" onclick="cancelalljs();">Cancel</a>
                                 </div>
                                 <div class="col-md-9">
@@ -312,22 +313,23 @@ select[multiple], select[size] {
                                                 <div class="form-group">
                                                     <div class="col-md-2">
                                                         <label>
-                                                            Mileage Approval Date
-                                                        </label>
-                                                    </div>
-                                                    <div class="col-md-4">
-                                                        <apex:input type="date" styleClass="form-control col-md-2 dummydateclass" value="{!selectedmileageApprovedDate}" />
-                                                    </div>
-                                                    <div class="col-md-2">
-                                                        <label>
                                                             Trip Status
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
-                                                        <apex:selectList styleClass="form-control col-md-2 dummystatusclass" size="1" multiselect="false" value="{!selectedTripStatus}">
+                                                        <apex:selectList styleClass="form-control col-md-2 dummystatusclass" size="1" multiselect="false" value="{!selectedTripStatus}" id="trip_status" onchange="tripStatus();">
                                                             <apex:selectOptions value="{!obj_trip_status}"></apex:selectOptions>
                                                         </apex:selectList>
-                                                    </div>              
+                                                    </div>  
+                                                    <div class="col-md-2">
+                                                        <label>
+                                                            Mileage Approval Date
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <apex:input type="date" styleClass="form-control col-md-2 dummydateclass" value="{!selectedmileageApprovedDate}" onchange="dummyDate();"/>
+                                                    </div>
+                                                              
                                                 </div>
                                             </div>
                                         </div>
@@ -363,7 +365,7 @@ select[multiple], select[size] {
                         <div class="panel-footer">
                             <div class="row">
                                 <div class="col-md-3">
-                                    <a class="btn btn-success" onclick="showmodal();">Update Mileages</a>
+                                    <a class="btn btn-success" onclick="showmodal();" id="update_Mileage">Update Mileages</a>
                                     <a class="btn btn-primary" onclick="cancelalljs();">Cancel</a>
                                 </div>
                                 <div class="col-md-9">
@@ -390,6 +392,72 @@ select[multiple], select[size] {
         </div> 
     </apex:form>
     <script>
+        function reimStatus(){
+            var selectedReimStatus = $('.dummyReimStatusClass').val();
+            var reimApprovedDate = $('.dummyReimDateClass').val();
+            if(selectedReimStatus == 'Approved' || selectedReimStatus == 'Rejected' || selectedReimStatus == ''){
+                
+                if(reimApprovedDate == "" || reimApprovedDate == null){
+                    $('#updateReimbersment').attr('disabled','disabled');
+                }
+                else{
+                    $('#updateReimbersment').removeAttr('disabled');
+                }
+            }
+            else{
+                    $('#updateReimbersment').removeAttr('disabled');
+            }
+        }
+        function tripStatus(){
+            var selectedTrip = $('.dummystatusclass').val(); 
+            console.log(selectedTrip);
+            var mileageApproveDate = $('.dummydateclass').val();
+            if(selectedTrip =='Approved' || selectedTrip == 'Rejected' || selectedTrip == ''){
+                if(mileageApproveDate == "" || mileageApproveDate == null){
+                    $('#update_Mileage').attr('disabled','disabled');
+                }
+                else{
+                    $('#update_Mileage').removeAttr('disabled');
+                }
+            }
+            else{
+               
+               // document.getElementById('update_Mileage').style.display = "inline-block";
+               $('#update_Mileage').removeAttr('disabled');
+            
+            }
+        }
+        function dummyDate(){
+            var selectedTrip = $('.dummystatusclass').val(); 
+            var mileageApproveDate = $('.dummydateclass').val();
+            var mileageBtn = document.getElementById('update_Mileage');
+            if(mileageApproveDate == "" || mileageApproveDate == null){
+                if(selectedTrip =='Approved' || selectedTrip == 'Rejected'){
+                    $('#update_Mileage').attr('disabled','disabled');
+                }
+                else{
+                    $('#update_Mileage').removeAttr('disabled');
+                }
+            }
+            else{
+                $('#update_Mileage').removeAttr('disabled');
+            }
+        }
+        function reimDate(){
+            var selectedReimStatus = $('.dummyReimStatusClass').val();
+            var reimApprovedDate = $('.dummyReimDateClass').val();
+            if(reimApprovedDate == "" || reimApprovedDate == null){
+                if(selectedReimStatus == 'Approved' || selectedReimStatus == 'Rejected'){
+                    $('#updateReimbersment').attr('disabled','disabled');
+                }
+                else{
+                    $('#updateReimbersment').removeAttr('disabled');
+                }
+            }
+            else{
+                    $('#updateReimbersment').removeAttr('disabled');
+            }
+        }
         function showmodal()
         {    
             if((($(".dff").val()!=undefined) && ($(".dff").val()!="") && ($(".dff").val()!= null) && ($(".dff").val()!= "None") && (($(".dff").val()).length>0)) && (($(".dummyReimForMileages").val()!="") && ($(".dummyReimForMileages").val()!= null) && ($(".dummyReimForMileages").val()!= undefined) && ($(".dummyReimForMileages").val()!= "None") && (($(".dummyReimForMileages").val()).length>0 ))) 
@@ -468,7 +536,6 @@ select[multiple], select[size] {
             getContactsjs();
         }
         $(document).ready(function () {
-        
         $.fn.select2.defaults.set("theme", "bootstrap");
         $(".dff").select2({
          width: null

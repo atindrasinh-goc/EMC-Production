@@ -546,7 +546,28 @@
                         });
                         $scope.finnalArr.push($scope.finnalData);
                     });
-                   // console.log($scope.finnalArr);
+                  angular.forEach($scope.finnalArr,function(item){
+                    let startTime = new Date(item.StartTime);
+                    let endTime = new Date(item.EndTime);
+                    let hours = startTime.getHours();
+                    let min = startTime.getMinutes();
+                    let endhour = endTime.getHours();
+                    let endmin = endTime.getMinutes();
+                    let starttimeformat = hours >= 12 ? 'PM' : 'AM';
+                    hours = hours % 12;
+                    hours = hours ? hours : 12;
+                    min = min < 10 ? '0' + min : min;
+
+                    let endtimeformat = min >= 12 ? 'PM' : 'AM';
+                    endhour = endhour % 12;
+                    endhour = endhour ? endhour : 12;
+                    endmin = endmin < 10 ? '0' + endmin : endmin;
+                    let strTime = hours + ':' + min + ' ' + starttimeformat;
+                    let enTime = endhour + ':' + endmin + ' ' + endtimeformat;
+                    item.StartTime = strTime.toString();
+                    item.EndTime = enTime.toString();
+                    
+                 })
                 $scope.pageSize = 250;
                 $scope.currentPage = 1;
 

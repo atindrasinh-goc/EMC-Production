@@ -51,9 +51,10 @@ public class AdminManagerDriverDashboardCon_test {
         AdminManagerDriverDashboardController.getAllReimbursements('2019',obj_driver_contact.id,obj_acc.id);
        // AdminManagerDriverDashboardController.approveReimbursements(String.valueOf(Date.today().year()),obj_driver_contact.Id,obj_acc.Id,obj_driver_contact.Manager__c,JSON.serialize(empReimWrapList));
       //  AdminManagerDriverDashboardController.approveReimbursements('2019',obj_driver_contact.Id,obj_acc.Id,obj_driver_contact.Manager__c,JSON.serialize(empReimWrapList));
+        AdminManagerDriverDashboardController.getDriverGasPrice('New York','New York');
         DateTime dt = DateTime.now();
         String monthName = dt.format('MMMMMMM');
-      //  AdminManagerDriverDashboardController.approveMileages(JSON.serialize(empMileageList),String.valueOf(Date.today().year()),obj_driver_contact.Id);
+       AdminManagerDriverDashboardController.approveMileages(null,null,obj_driver_contact.Name,obj_driver_contact.Email);
       //  AdminManagerDriverDashboardController.getMileages(monthName,obj_driver_contact.Id,obj_acc.Id,obj_driver_contact.Manager__c);
         Test.stopTest();
     }

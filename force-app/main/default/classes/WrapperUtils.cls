@@ -195,6 +195,13 @@ public with sharing class WrapperUtils
             currentEmployeeDetail.role=currentContact.Role__c;    
         }
         
+        if(currentContact.Freeze__c != null){
+            currentEmployeeDetail.freeze = currentContact.Freeze__c.format();
+        }
+        else {
+            currentEmployeeDetail.freeze = '';
+        }
+
         currentEmployeeDetail.managerId=currentContact.Manager__c;    
         //currentEmployeeDetail.managerId=currentContact.Manager__c;    
         
@@ -370,6 +377,29 @@ public with sharing class WrapperUtils
         {
             currentContact.Deactivated_Date__c =null;
         }
+
+        if(currentEmployeeDetail.freeze  !=  null)
+        {
+            List<String> freezeDateSplitted = new List<String>();
+            if(String.valueOf(currentEmployeeDetail.freeze).contains('-'))
+            {
+                freezeDateSplitted = String.valueOf(currentEmployeeDetail.freeze).split('-');
+            }
+            else if((String.valueOf(currentEmployeeDetail.freeze).contains('/')))
+            {
+                freezeDateSplitted = String.valueOf(currentEmployeeDetail.freeze).split('/');                
+            }
+            if(freezeDateSplitted.size() > 0){
+                currentContact.Freeze__c =  Date.newInstance(Integer.valueOf(freezeDateSplitted[2]), Integer.valueOf(freezeDateSplitted[0]), Integer.valueOf(freezeDateSplitted[1]));
+            }
+            
+            //currentContact.Deactivated_Date__c = date.parse(currentEmployeeDetail.deactivaedDate);
+        }
+        else
+        {
+            currentContact.Freeze__c =null;
+        }
+
         if(currentEmployeeDetail.drivingStates != null && currentEmployeeDetail.drivingStates.size()>0)
         {
             String state='';
@@ -568,6 +598,21 @@ public with sharing class WrapperUtils
             }
             currentContact.Activation_Date__c =  Date.newInstance(Integer.valueOf(activationDateSplitted[2]), Integer.valueOf(activationDateSplitted[0]), Integer.valueOf(activationDateSplitted[1]));
         }
+
+        if(currentEmployeeDetail.freeze != null && currentEmployeeDetail.freeze != '')
+        {
+            List<String> freezeSplitted = new List<String>();
+            if(String.valueOf(currentEmployeeDetail.freeze).contains('-'))
+            {
+                freezeSplitted = String.valueOf(currentEmployeeDetail.freeze).split('-');
+            }
+            else if((String.valueOf(currentEmployeeDetail.freeze).contains('/')))
+            {
+                freezeSplitted = String.valueOf(currentEmployeeDetail.freeze).split('/');                
+            }
+            currentContact.Freeze__c =  Date.newInstance(Integer.valueOf(freezeSplitted[2]), Integer.valueOf(freezeSplitted[0]), Integer.valueOf(freezeSplitted[1]));
+        }
+        
         if(currentEmployeeDetail.addedDate != null && currentEmployeeDetail.addedDate != '')
         {
             List<String> addedDateSplitted = new List<String>();
@@ -2626,6 +2671,49 @@ public with sharing class WrapperUtils
              }
         }
     }
+
+    //method is use for fatch mileages from triplog 
+    //AI-000429
+    public static void TripCallout(Id driverId, String month, String year, String fuel, String maintTyre, Id empReID,String mpg){
+        List<contact> obj_currect_contact1 = new List<contact>();
+        obj_currect_contact1 = [SELECT id, Email, Account.Triplog_API__c 
+                                    FROM Contact 
+                                    WHERE id =: driverId];
+
+        Map<String,String> monthNumberMap = new Map<String,String>{'January' => '01','February' => '02', 'March' => '03', 'April' => '04', 'May' => '05',
+                                                                    'June' => '06', 'July' => '07', 'August' => '08', 'September' => '09', 'Octomber' => '10',
+                                                                    'Novemver' => '11', 'December' => '12'};
+
+        String priMin =  year+'-'+monthNumberMap.get(month) + '-1';    
+        String priMax = String.valueOf(Date.valueOf(priMin).addDays(date.daysInMonth(Integer.valueOf(year), Integer.valueOf(monthNumberMap.get(month))) - 1));
+    
+        String apiToken = obj_currect_contact1[0].Account.Triplog_API__c ;
+        
+        if(apiToken != null && !Test.isRunningTest() ){
+            System.debug('----------------------------');
+            GetTripCallout.GetTripCalloutForMileage(empReID, obj_currect_contact1[0].Email,obj_currect_contact1[0].id,priMin,priMax,fuel,mpg,maintTyre,apiToken,'U');
+        }
+    }
+
+    //method is use for change reimbursement status 
+    //AI-000429
+    public static void UpdateReimbursementStatus(Id empReID){
+        if(empReID != null){
+            List<Employee_Reimbursement__c> reimbursementList = new List<Employee_Reimbursement__c>();
+            for(Employee_Reimbursement__c reimbsement : [SELECT id,Status__c, Approved_Date__c 
+                                                            FROM Employee_Reimbursement__c 
+                                                            WHERE id =: empReID ]){
+                if(reimbsement.Status__c != 'Pending'){
+                    reimbsement.Status__c = 'Pending';
+                    reimbsement.Approved_Date__c = null;
+                    reimbursementList.add(reimbsement);
+                }
+            }
+            if(reimbursementList.size() > 0){
+                update reimbursementList;
+            }
+        }
+    }
     /* public static void emailReminderUnappAdmin(String unapprovedRemIds) {
         if(unapprovedRemIds!=null) {
             List<String> reimbursementIdsList = new List<String>();
@@ -2670,5 +2758,30 @@ public with sharing class WrapperUtils
             return '';
         }
     }*/ 
+    //AI-000426
+    public static void updateLockDate(String accountId, String lockDate){
+    System.debug('accountId'+accountId+''+'lockDate'+lockDate);
+        //String accountId = '0013100001m0o3GAAQ';
+        //String lockDate = '2020-03-25';
+        if(accountId != null && lockDate != null){
+            List<String> lastPaydateSplitted = new List<String>();
+            if(lockDate.contains('-'))
+            {
+                lastPaydateSplitted = lockDate.split('-');                
+            }
+            
+            List<Employee_Reimbursement__c> reimbursementList = new List<Employee_Reimbursement__c>();
+            for(Employee_Reimbursement__c objReimb : [SELECT ID,Mileage_Lock_Date__c, Status__c FROM Employee_Reimbursement__c WHERE Status__c = 'Pending' AND Contact_Id__r.AccountId =: accountId ]){
+                objReimb.Mileage_Lock_Date__c = Date.newInstance(Integer.valueOf(lastPaydateSplitted[0]), Integer.valueOf(lastPaydateSplitted[1]), Integer.valueOf(lastPaydateSplitted[2]));
+                system.debug('objReimb.Mileage_Lock_Date__c'+Date.newInstance(Integer.valueOf(lastPaydateSplitted[0]), Integer.valueOf(lastPaydateSplitted[1]), Integer.valueOf(lastPaydateSplitted[2])));
+                reimbursementList.add(objReimb);
+            }
+            
+            if(reimbursementList.size() > 0 ){
+                system.debug('reimbursementList'+reimbursementList);
+                update reimbursementList;
+            }
+        }
+    }
     
 }

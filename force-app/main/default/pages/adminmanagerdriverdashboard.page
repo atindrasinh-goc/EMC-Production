@@ -8,6 +8,10 @@
             <script src="https://gitcdn.github.io/bootstrap-toggle/2.1.0/js/bootstrap-toggle.min.js"></script>
             <script src="https://angular-ui.github.io/bootstrap/ui-bootstrap-tpls-0.9.0.js"></script>
             <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+            <!-- Added By Megha - 31/03/2020 -->
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.15/lodash.min.js"></script>
+            <!-- Added By Megha - 31/03/2020 -->
+ 
             <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet" />
             <!-- for excel download directive-->
             <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.8.1/jszip.js"></script>
@@ -168,8 +172,14 @@
                 .mr-11{
                     margin-right: 12px !important;
                 }
+                .w-10rem{
+                     width: 10rem;
+                }
                 .table-nodata{
                     text-align: center;
+                }
+                .syncMileageBtn{
+                     font-size: 12px !important;
                 }
                 /*AI-000206 - Ends*/
             </style>
@@ -279,6 +289,7 @@
                                 scope.total = 0;
                                 scope.totalvariablerate = 0;
                                 var lstInd = scope.lastIndex;
+                                var count = 0;
                                 let tl = 0;
                                 let tv = 0;
                                 
@@ -305,6 +316,24 @@
                                     scope.lastIndex = i + 1;
                                 }
                                 
+                                 //AI-000427 --> Starts
+                                
+                                 angular.forEach(scope.showData, function(item) {
+                                        if(item.isSelected || item.isChecked){  
+                                            count++;
+                                        }
+                                });
+
+                               
+    
+                                if(count == 0){
+                                         scope.displayBtn = false;   
+                                }
+                                else{
+                                         scope.displayBtn = true;
+                                }
+
+                                 //AI-000427 --> Ends
                                 scope.total = tl.toFixed(2);
                                 scope.totalvariablerate = tv.toFixed(2);
                                 scope.currentPage++;
@@ -316,6 +345,7 @@
                                 let tl = 0;
                                 let tv = 0;
                                 var lstInd = scope.lastIndex;
+                                var count = 0;
                                 for (var i = scope.lastIndex - (scope.itemPerPage*2); i < lstInd - scope.itemPerPage; i++) {
                                  let isSearch = scope.searchedArray.length>0?true:false
                                     if(isSearch){
@@ -338,6 +368,25 @@
                                   //  scope.sort("tripdate");
                                     scope.lastIndex = i + 1;
                                 }
+
+                                 //AI-000427 --> Starts
+                                
+                                 angular.forEach(scope.showData, function(item) {
+                                        if(item.isSelected || item.isChecked){  
+                                            count++;
+                                        }
+                                });
+
+                               
+    
+                                if(count == 0){
+                                         scope.displayBtn = false;   
+                                }
+                                else{
+                                         scope.displayBtn = true;
+                                }
+
+                                 //AI-000427 --> Ends
                                 scope.total = tl.toFixed(2);
                                 scope.totalvariablerate = tv.toFixed(2);
                                 scope.currentPage--;
@@ -926,8 +975,8 @@
                         $scope.id = url.searchParams.get("id");
                         $scope.adminid = url.searchParams.get("adminid");
                         $scope.showteam = url.searchParams.get("showteam");
+                        $scope.syncMileageLabel = '{!($Label.unapproveMileageMessage)}';
                         $scope.years = {!Last2Years};
-                        console.log($scope.years);
                         $scope.years.sort(function(a,b){
                             var numA = parseInt(a),
                                 numB = parseInt(b);
@@ -940,6 +989,7 @@
                                      return 0; //default return value (no sorting)
                                  }
                         })
+                        $scope.lastYear = _.first($scope.years);
                         $scope.search="";
                         $scope.emailofemployee = '{!emailofEmployee}';
                         
@@ -1197,6 +1247,46 @@
                             });
                             $scope.unapprovemileage = count;
                             $scope.showunapprove = true;    
+                        }
+
+
+                        $scope.syncMileages = function (month, fuel, maintainsAndTyres, empReID, mpg) {
+                                $('#spinner').show();
+                                $scope.getMonth = month;
+                                $scope.getYear = $scope.selectedYear;
+                                $scope.getFuel = fuel;
+                                $scope.getmaintTyre = maintainsAndTyres;
+                                $scope.empReID = empReID;
+                                $scope.mpg = mpg;
+                                Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.AdminManagerDriverDashboardController.UpdateReimbursementStatus}', $scope.empReID,
+                                    function (result, event) {
+                                        if (event.status) {
+                                            Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.AdminManagerDriverDashboardController.TripCallout}', $scope.id, $scope.getMonth, $scope.getYear, $scope.getFuel, $scope.getmaintTyre, $scope.empReID, $scope.mpg,
+                                                function (result, event) {
+                                                    if (event.status) {
+                                                        $scope.$modalInstance = $modal.open({
+                                                            template: '<button type="button" ng-click="cancel()" class="close popup-close-btn" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button><div class="modal-body text-center"><div class="checkhead"><h4>{{syncMileageLabel}}</h4></div><div class="check-in-info"><p></p></div><div class="check-submit"><button type="button" ng-click="okforSync()" class="btn btn-primary" data-dismiss="modal">OK</button></div></div>',
+
+                                                            scope: $scope
+                                                        });
+                                                        $('#spinner').hide();
+                                                    }
+                                                    else {
+                                                        toastr.error('Something went wrong');
+                                                    }
+                                                }, { escape: false }
+                                            );
+                                        }
+                                        else {
+                                            toastr.error('Something went wrong');
+                                        }
+                                    }
+                                );
+                        }
+
+                        $scope.okforSync = function(){
+                            $scope.$modalInstance.close();
+                            location.reload();
                         }
                         /* Sorting For table */
                         $scope.sortKey1 = 'Month';   //set the sortKey to the param passed   
@@ -1474,6 +1564,7 @@
                                                     width="100%">
                                                     <thead>
                                                         <tr>
+                                                            <th ng-if="yr == lastYear"></th>
                                                             <th >Month
                                                                 <span class="sort-icon pull-right" ></span> 
                                                             </th>
@@ -1497,6 +1588,7 @@
                                                     </thead>
                                                     <tbody class="driver-dashboard-table table-a-link">
                                                         <tr dir-paginate="ml in mileages |orderBy:sortKey:reverse |itemsPerPage:12">
+                                                            <td class="w-10rem" ng-if="yr == lastYear"><button class="btn btn-primary syncMileageBtn" ng-click="syncMileages(ml.month,ml.fuel,ml.maintainsAndTyres,ml.employeeReimbursementId,ml.mpg)" ng-if="$first && yr == lastYear">Mileage Sync</button></td>
                                                             <td ng-click="openmodal(ml.month)"><a>{{ml.month}}</a></td>
                                                             <td ng-if="ml.fuel != null && ml.fuel != ''">${{ml.fuel}}</td>
                                                             <td ng-if="ml.fuel == null || ml.fuel == ''"></td>

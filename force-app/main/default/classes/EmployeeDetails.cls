@@ -101,4 +101,7 @@ public with sharing class EmployeeDetails
     public string sage100ID{get;set;}
     public string glcode{get;set;}
     public string addedDate {get;set;}
+    public boolean IsMassDeactivated{get;set;}
+    public Boolean IsMassFreeze{ get; set; }
+    public String freeze{ get; set; }
 }

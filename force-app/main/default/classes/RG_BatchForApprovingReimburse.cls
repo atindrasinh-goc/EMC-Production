@@ -34,8 +34,9 @@ global class RG_BatchForApprovingReimburse implements Database.Batchable<sObject
             querybuilding = querybuilding+' ) AND ';
             System.debug(querybuilding);    
         }
-        RG_InsertLastMonthReimbursement insRe = new RG_InsertLastMonthReimbursement();
-        String lastMonth = insRe.getLastMonthValue(-1);
+        //RG_InsertLastMonthReimbursement insRe = new RG_InsertLastMonthReimbursement();
+        //String lastMonth = insRe.getLastMonthValue(-1);
+        String lastMonth = WrapperUtils.getLastMonthValue(-1);
         string query = 'select id, Name, Contact_Id__r.Name, Total_Mileage_WithOut_Previous__c, Contact_Id__r.FirstName, Contact_Id__r.account.Enable_Email_For_Driver__c, Contact_Id__r.External_Email__c, Contact_Id__r.Monthly_Mileage_Limit__c, Contact_Id__r.Manager__r.External_Email__c, Contact_Id__r.Manager__r.FirstName, Contact_Id__r.Manager__c, Monthly_Mileage__c, Total_Mileage__c from Employee_Reimbursement__c where '+querybuilding+' month__c=\'' + lastMonth + '\'  and Approved_Date__c=null';
         return Database.getQueryLocator(query);
     }
@@ -46,7 +47,7 @@ global class RG_BatchForApprovingReimburse implements Database.Batchable<sObject
         for(Employee_Reimbursement__c singleReimbursement : empReimList) 
         {
             //if((singleReimbursement.Contact_Id__r.Monthly_Mileage_Limit__c >= singleReimbursement.Total_Mileage_WithOut_Previous__c) || (singleReimbursement.Total_Mileage__c == 0)) 
-            if((singleReimbursement.Contact_Id__r.Monthly_Mileage_Limit__c >= singleReimbursement.Total_Mileage__c) || (singleReimbursement.Total_Mileage__c == 0)) 
+            if((singleReimbursement.Contact_Id__r.Monthly_Mileage_Limit__c >= singleReimbursement.Total_Mileage__c) /*|| (singleReimbursement.Total_Mileage__c == 0)*/) 
             {
                 singleReimbursement.Status__c = 'Approved';
                 singleReimbursement.Approved_Date__c = System.today();

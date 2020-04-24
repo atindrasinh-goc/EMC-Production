@@ -46,6 +46,21 @@ public class RosterControllerTest {
         Contact obj_Manager_list1 = new Contact();
         obj_Manager_list1 = RecordUtilityClass.getManagerContact();
 
+        Profile p = [SELECT Id FROM Profile WHERE Name='Customer Community Login User - Driver']; 
+        User user = new User(Alias = 'standt', 
+                            Email='standarduser1@testorg.com', 
+                            EmailEncodingKey='UTF-8', 
+                            LastName='Testing', 
+                            LanguageLocaleKey='en_US', 
+                            LocaleSidKey='en_US', 
+                            ProfileId = p.Id, 
+                            TimeZoneSidKey='America/Los_Angeles', 
+                            UserName='standarduser2@testorg.com',
+                            Contactid = obj_Manager_list[0].id,
+                            IsActive = True
+                        );
+        insert user;
+
         EmployeeDetails empDetail = WrapperUtils.getEmployeeDetails(obj_Driver_list1[0]);
         EmployeeDetails empDetail1 = WrapperUtils.getEmployeeDetails(obj_Contact2);
          String str = 'Employee_ID__c,Firstname,LastName,External_Email__c,' + 
@@ -77,7 +92,7 @@ public class RosterControllerTest {
         RosterController.getlistAllEmployees(obj_Account.Id,obj_admincontact.Id);
         RosterController.getRoles();
         RosterController.getDrivingStates();
-        //RosterController.getUser(obj_admincontact.Id);
+        RosterController.getUser(obj_admincontact.Id);
         RosterController.sendExceptionMails('Insert Failed','1');
         RosterController.getCustomExceptionMessage('1');
         RosterController.readFromFile(csvAsString,accId);
@@ -87,6 +102,12 @@ public class RosterControllerTest {
         RosterController.getCountryStateCity('36310');
         RosterController.getCity('Abbeville','36310');
         RosterController.getPickListValuesIntoList();
+        List<String> conIdList = new List<String>();
+        for(contact cont:obj_Manager_list){
+            conIdList.add(cont.Id);
+        }
+        RosterController.massFreeze(JSON.serialize(conIdList),true);
+
                
         /*RosterController.wrapperEmployeeDetails = empDetail;
         RosterController.currentLoggedInContact = obj_admincontact;
@@ -108,9 +129,10 @@ public class RosterControllerTest {
             insertedContactIDList.add(currentcontact.id);
         }        
         RosterController.postHTTPCreateNewUserTriplog(insertedContactIDList);
-        RosterController.getExcetionTypes('System.DmlException','UPDATE FAILED',12);
-        RosterController.getExcetionTypes('TypeException','UPDATE FAILED',12);
-        RosterController.getExcetionTypes('QueryException','UPDATE FAILED',12);
+        RosterController.getExcetionTypes('System.DmlException','[UPDATE FAILED]',12);
+        RosterController.getExcetionTypes('TypeException','Invalid decimal: .',12);
+        RosterController.getExcetionTypes('QueryException','[List has no rows]',12);
+        RosterController.getExcetionTypes('NullPointerException','Attempt to de-reference',12);
         Test.stopTest();
     }
     public static testmethod void RosterControllerTestMethod1(){

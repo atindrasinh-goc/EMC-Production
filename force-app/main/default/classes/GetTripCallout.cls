@@ -45,10 +45,11 @@ global class GetTripCallout {
                     emp.Trip_Status__c = StaticValues.noApprovedYet;
                     emp.Trip_Id__c = lt.id;
                     emp.Mileage__c = lt.mileage;
-                    if(emp.Mileage__c == null || emp.Mileage__c == 0) {
+                   //AI-000408
+                    /*if(emp.Mileage__c == null || emp.Mileage__c == 0) {
                         emp.Trip_Status__c = 'Approved';
                         emp.Approved_Date__c = System.Today();
-                    }
+                    }*/
                     emp.EmployeeReimbursement__c = empReID;
                     emp.Contact_Email_Id__c = contactEmail;
                     //Datetime str  = Datetime.valueOf(lt.startTime);

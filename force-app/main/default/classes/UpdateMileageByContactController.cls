@@ -104,7 +104,7 @@ public class UpdateMileageByContactController {
         id = '';
         String serializeString = '';
         if(Selected_reimbersments != null && Selected_reimbersments != '') {
-            soql = 'SELECT id,name,Approved_Date__c ,Contact_Email_Id__c,Employee_ID__c,CreatedDate ,LastModifiedDate , Trip_Date__c,Trip_Destination__c,Trip_Origin__c,Trip_Date_Month__c,Trip_Status__c,Fuel_price__c,EmployeeReimbursement__r.Name,EmployeeReimbursement__r.Month__c,Maintenance_and_Tires__c,Mileage__c,MPG__c FROM Employee_Mileage__c where (EmployeeReimbursement__r.id =: Selected_reimbersments and Trip_Status__c = \'Not Approved Yet\') LIMIT 10001';
+            soql = 'SELECT id,name,Approved_Date__c ,Rejected__c ,Contact_Email_Id__c,Employee_ID__c,CreatedDate ,LastModifiedDate , Trip_Date__c,Trip_Destination__c,Trip_Origin__c,Trip_Date_Month__c,Trip_Status__c,Fuel_price__c,EmployeeReimbursement__r.Name,EmployeeReimbursement__r.Status__c,EmployeeReimbursement__r.Month__c,EmployeeReimbursement__r.Approved_Date__c,Maintenance_and_Tires__c,Mileage__c,MPG__c FROM Employee_Mileage__c where (EmployeeReimbursement__r.id =: Selected_reimbersments and Trip_Status__c = \'Not Approved Yet\' and Approved_Date__c = null and Rejected__c = false) LIMIT 10001';
         } 
         if(soql != null && soql != '') {
             for(Employee_Mileage__c wrapEmp: (List<Employee_Mileage__c>) Database.Query(soql)) {
@@ -117,7 +117,7 @@ public class UpdateMileageByContactController {
                     count = 0;
                     maintableDataList = new List<WrapperMainTable>();
                 }
-                WrapperMainTable obj_WrapperMainTable = new WrapperMainTable(false,wrapEmp.id,wrapEmp.name,wrapEmp.EmployeeReimbursement__r.Name,wrapEmp.Fuel_price__c,wrapEmp.Maintenance_and_Tires__c,wrapEmp.Mileage__c,wrapEmp.MPG__c,wrapEmp.Approved_Date__c,wrapEmp.Trip_Date__c,wrapEmp.Trip_Destination__c,wrapEmp.Trip_Origin__c);
+                WrapperMainTable obj_WrapperMainTable = new WrapperMainTable(false,wrapEmp.id,wrapEmp.name,wrapEmp.EmployeeReimbursement__r.Name,wrapEmp.EmployeeReimbursement__r.Status__c,wrapEmp.Fuel_price__c,wrapEmp.Maintenance_and_Tires__c,wrapEmp.Mileage__c,wrapEmp.MPG__c,wrapEmp.EmployeeReimbursement__r.Approved_Date__c,wrapEmp.Trip_Date__c,wrapEmp.Trip_Destination__c,wrapEmp.Trip_Origin__c);
                 obj_WrapperMainTable.mil = wrapEmp;
                 count ++;
                 maintableDataList.add(obj_WrapperMainTable);   
@@ -208,6 +208,7 @@ public class UpdateMileageByContactController {
         public Employee_Mileage__c mil                  {get; set;}
         public String Id                                {get; set;}
         public String employeeName                      {get; set;}
+        public String reimbursementStatus               {get; set;}
         public String name                              {get; set;}
         public Decimal fuelPrice                        {get; set;}
         public Decimal maintenanceAndTires              {get; set;}
@@ -218,7 +219,7 @@ public class UpdateMileageByContactController {
         public String tripDestination                   {get; set;}
         public String tripOrigin                        {get; set;}
         public WrapperMainTable(Boolean isSelected, String Id, 
-                                    String name, String employeeName,
+                                    String name, String employeeName,String reimbursementStatus,
                                     Decimal fuelPrice, Decimal maintenanceAndTires, 
                                     Decimal mileage, Decimal MPG, Date approvedDate, Date tripDate,String tripDestination,String tripOrigin) {
             this.isPRSelected = isSelected;
@@ -226,6 +227,7 @@ public class UpdateMileageByContactController {
             this.id = id;
             this.name = name;
             this.employeeName = employeeName;
+            this.reimbursementStatus = reimbursementStatus;
             this.fuelPrice = fuelPrice;
             this.maintenanceAndTires = maintenanceAndTires;
             this.mileage = mileage;
@@ -234,6 +236,7 @@ public class UpdateMileageByContactController {
             this.tripDate = tripDate;
             this.tripDestination = tripDestination;
             this.tripOrigin = tripOrigin;
+            
         }
     }
 }

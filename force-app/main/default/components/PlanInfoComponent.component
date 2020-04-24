@@ -375,6 +375,7 @@
                                         <span data-year="Waiting For Signature" data-info=""></span>
                                     </div>
                                     <div class="plan-info-input" id="completesignature">
+                                        <div class="input-ring"></div>
                                         <span data-year="Complete" data-info=""></span>
                                     </div>
                                 </div>
@@ -383,7 +384,7 @@
                             <!--mobio-->
     
                             <div class="col-lg-12">
-                                <apex:form >
+                                <apex:form html-ng-non-bindable="true">
                                     <apex:outputPanel rendered="{!driverPacketDocCount > 0}">
                                         <div class="plan-info-timeline plan-new-info-timeline">
                                             <a id="downloadbtn" class="btn btn-secondary pull-right emc-btn-download emc_new_btn_download" target="_blank" href="{!URLFOR($Action.Attachment.Download, driverPacketId)}">Download</a>
@@ -408,6 +409,7 @@
                                         <span data-year="Sent" data-info=""></span>
                                     </div>
                                     <div class="plan-info-input" id="completedsignature">
+                                        <div class="input-ring"></div>
                                         <span data-year="Completed" data-info=""></span>
                                     </div>
                                     <div class="plan-info-input" id="didnotattendsignature">
@@ -420,7 +422,7 @@
                 </div>
                 <!-- mobio -->
                 <div class="tab-pane" id="pills-timeline-insurance-declatarion">
-                    <apex:form styleClass="pull-right">
+                    <apex:form html-ng-non-bindable="true" styleClass="pull-right">
                         <apex:outputPanel rendered="{!insuranceDocCount > 0}">
                             <div class="tab-pills-width ng-pristine ng-valid emc_insurance_tab_pills emc_insurance_tab_upload_pills">
                                 <div class="plan-info-timeline">

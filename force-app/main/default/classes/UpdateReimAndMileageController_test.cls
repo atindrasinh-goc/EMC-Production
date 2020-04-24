@@ -62,6 +62,8 @@ public class UpdateReimAndMileageController_test {
         controller.getReimbersments();
         controller.Selected_reimbersments = erRec.id;
         controller.getReimbersmentDetails();
+        controller.getContacts();
+        controller.getContactsMileages();
        
         
         Test.stopTest();

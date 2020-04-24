@@ -25,5 +25,13 @@ public class EmployeeDetailTest {
         empDetail.IsDeactivated = false;
         empDetail.compliancestatus ='';
         empDetail.accountId      = '0011h00000LNa1f';
+        empDetail.IsMassDeactivated = true;
+        empDetail.approvalThreshold = '50';
+        empDetail.appVersion = '5';
+        empDetail.totalreimbursement = '57';
+        empDetail.monthlymileageLimit = '1200';
+        empDetail.fixedamount = '500';
+        empDetail.branchName = 'abc';
+        
     }
 }

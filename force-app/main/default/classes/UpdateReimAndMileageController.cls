@@ -227,7 +227,7 @@ public class UpdateReimAndMileageController
            flagtoshowdetails_mileages = false; 
            SelectOption obj_null = new SelectOption('','None');
            obj_reimbersments_mileages.add(obj_null);
-           for(Employee_Reimbursement__c obj_current_Employee_Reimbursement :[SELECT id,Name,Maintenance_and_Tires__c,MPG__c,Approved_Date__c,Status__c,(SELECT id,EmployeeReimbursement__c,Maintenance_and_Tires__c,Approved_Date__c,MPG__c FROM Employees_Mileage__r) FROM Employee_Reimbursement__c WHERE Contact_Id__c=:Selectedcontactid_mileages])
+           for(Employee_Reimbursement__c obj_current_Employee_Reimbursement :[SELECT id,Name,Maintenance_and_Tires__c,MPG__c,Approved_Date__c,Status__c,(SELECT id,EmployeeReimbursement__c,Maintenance_and_Tires__c,Approved_Date__c,MPG__c,Rejected__c FROM Employees_Mileage__r) FROM Employee_Reimbursement__c WHERE Contact_Id__c=:Selectedcontactid_mileages])
            {
                SelectOption obj_current_option = new SelectOption(obj_current_Employee_Reimbursement.id,obj_current_Employee_Reimbursement.Name);
                obj_reimbersments_mileages.add(obj_current_option);
@@ -314,6 +314,16 @@ public class UpdateReimAndMileageController
             {
                 if(selectedTripStatus != null){
                     obj_current_mileage.Trip_Status__c = selectedTripStatus;
+                    if(selectedTripStatus == 'Not Approved Yet'){
+                        obj_current_mileage.Rejected__c = false ;
+                        obj_current_mileage.Approved_Date__c = null ;
+                    }
+                    else if(selectedTripStatus == 'Rejected'){
+                        obj_current_mileage.Rejected__c = true ;
+                    }
+                    else if(selectedTripStatus == 'Approved'){
+                        obj_current_mileage.Rejected__c = false ;
+                    }
                 }
                 else{
                     obj_current_mileage.Trip_Status__c = null;
@@ -323,10 +333,10 @@ public class UpdateReimAndMileageController
                 if(selectedmileageApprovedDate != null){
                     obj_current_mileage.Approved_Date__c =selectedmileageApprovedDate;
                 }
-                else{
-                    obj_current_mileage.Approved_Date__c = null;
-                    //displayPopup = true;
-                }
+                // else{
+                //     obj_current_mileage.Approved_Date__c = null;
+                // }
+
                 if(selectedmileagempg != null && selectedmileagempg != '') 
                 { 
                     obj_current_mileage.MPG__c = Double.valueOf(selectedmileagempg);

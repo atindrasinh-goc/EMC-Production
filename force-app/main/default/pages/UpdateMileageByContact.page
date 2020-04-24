@@ -206,16 +206,18 @@
                                                         <apex:actionSupport event="onclick" action="{!getIsPRSelected}" onsubmit="cvCheckAllOrNone(this)" rerender="opnl_reimbersments_To,buttonUpdate" status="spinner" />
                                                     </apex:inputCheckbox>
                                                 </th>
-                                                <th><b>Employee Mileage Name</b></th>
+                                                <th><b>Mileage Name</b></th>
                                                 <th><b>Employee Reimbursement</b></th>
+                                                <th><b>Reimbursement Status</b></th>
+                                                <th><b>Reim.Approved Date</b></th> 
                                                 <th><b>Fuel Price</b></th>
                                                 <th><b>Mileage</b></th>
-                                                <th><b>MPG</b></th>
+                                                <!-- <th><b>MPG</b></th> -->
                                                 <th><b>Maintenance and Tires</b></th>
-                                                <th><b>Approved Date</b></th> 
+                                                <!-- <th><b>Approved Date</b></th>  -->
                                                 <th><b>Trip Date</b></th>
-                                                <th><b>Trip Destination</b></th>
                                                 <th><b>Trip Origin</b></th>
+                                                <th><b>Trip Dest.</b></th>
                                             </tr>
                                         </thead>
                                         <apex:repeat id="rpt_mileages" value="{!maintableDataList}" var="obj_current_mileage">
@@ -227,14 +229,15 @@
                                                 </td>
                                                 <td>{!obj_current_mileage.name}</td>
                                                 <td>{!obj_current_mileage.employeeName}</td>
+                                                <td>{!obj_current_mileage.reimbursementStatus}</td>
+                                                <td>{!obj_current_mileage.approvedDate}</td>
                                                 <td>{!obj_current_mileage.fuelPrice}</td>
                                                 <td>{!obj_current_mileage.mileage}</td>
-                                                <td>{!obj_current_mileage.MPG}</td>
+                                                <!-- <td>{!obj_current_mileage.MPG}</td> -->
                                                 <td>{!obj_current_mileage.maintenanceAndTires}</td>
-                                                <td>{!obj_current_mileage.approvedDate}</td>
                                                 <td>{!obj_current_mileage.tripDate}</td>
-                                                <td>{!obj_current_mileage.tripDestination}</td>
                                                 <td>{!obj_current_mileage.tripOrigin}</td>
+                                                <td>{!obj_current_mileage.tripDestination}</td>
                                             </tr>
                                         </apex:repeat>
                                     </table>

@@ -115,7 +115,7 @@ global class ChangeTripStatusinTripLog implements Database.Batchable<sObject>,Da
     }    
     global List<Employee_Reimbursement__c> start(Database.BatchableContext BC) 
     {
-        return [Select id,Status__c,Contact_Id__r.FirstName,Contact_Id__r.External_Email__c,Contact_Id__r.Manager__r.Name,Contact_Id__c,Contact_Id__r.Account.Triplog_API__c from Employee_Reimbursement__c where id IN:reimbursementMileageMap.keySet() and Contact_Id__r.Account.isUsingTriplog__c = true];
+        return [Select id,Status__c,Contact_Id__r.FirstName,Contact_Id__r.External_Email__c,Contact_Id__r.Manager__r.Name,Contact_Id__r.Manager__r.FirstName,Contact_Id__c,Contact_Id__r.Account.Triplog_API__c,Month__c from Employee_Reimbursement__c where id IN:reimbursementMileageMap.keySet() and Contact_Id__r.Account.isUsingTriplog__c = true];
     }
     global void execute(Database.BatchableContext BC, List<Employee_Reimbursement__c> scope) 
     {
@@ -157,6 +157,10 @@ global class ChangeTripStatusinTripLog implements Database.Batchable<sObject>,Da
                     String newemailBody = emailTemplateList1[0].HtmlValue;
                     List<String> emailsToSent = new List<String>();
                     List<String> toaddresse = new List<String>();
+                    List<String> months = new List<String>();
+                    Map<Integer,String> monthNameMap = new Map<Integer, String>{01 =>'January', 02=>'February', 03=>'March', 04=>'April', 05=>'May',
+                                                                    06=>'June', 07=>'July', 08=>'August', 09=>'September',10=>'October',
+                                                                    11=>'November', 12=>'December'};
                     if(customFlagSettings!=null && customFlagSettings.Send_to_Driver__c == true)
                     {
                         
@@ -193,8 +197,14 @@ global class ChangeTripStatusinTripLog implements Database.Batchable<sObject>,Da
                         }
                         email.setToAddresses(emailsToSent);
                     }
+                    //AI-000422
+                    if(currentReimbursement.Month__c != null ){
+                        months = currentReimbursement.Month__c.split('-');
+                    } 
                     newemailBody = newemailBody.replace('{Contact.Name}',currentReimbursement.Contact_Id__r.FirstName);  
                     newemailBody = newemailBody.replace('{!Contact.Manager__c}',currentReimbursement.Contact_Id__r.Manager__r.Name); 
+                    newemailBody = newemailBody.replace('{!Contact.Manager__r}',currentReimbursement.Contact_Id__r.Manager__r.FirstName);
+                    newemailBody = newemailBody.replace('{!Month__c}',monthNameMap.get(Integer.valueOf(months[0]) ));  
                     newemailBody = newemailBody.replace('{!$Label.Driver_Forword_Logo}', System.Label.Driver_Forword_Logo);
                     email.setSubject(emailTemplateList1[0].Subject);
                     email.setHtmlBody(newemailBody);        
