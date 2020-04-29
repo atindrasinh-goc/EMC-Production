@@ -1,29 +1,185 @@
 <apex:page showHeader="false" title="My Reports" sidebar="false" controller="ReportListController" action="{!getRedirected}">
     <head>  
     <apex:include pageName="EMC_Common_Head"/>
+    <script src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
     <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.13/angular.js"></script> 
+    <script src="https://gitcdn.github.io/bootstrap-toggle/2.1.0/js/bootstrap-toggle.min.js"></script>
+    <script src="https://angular-ui.github.io/bootstrap/ui-bootstrap-tpls-0.9.0.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet" />
+    <script src="{!URLFOR($Resource.modelJs)}"></script>
+    <style>
+            a{
+               cursor: pointer;
+            }
+            .modal-backdrop.fade {
+                opacity: 0.7 !important;
+            }
+            .modal-header{
+                background-color: #78bc42;
+                justify-content: center !important;
+                padding: 0.5rem 0.5rem !important;
+                border-top-left-radius: 0rem !important;
+                border-top-right-radius: 0rem !important;
+                box-shadow: 0 2px 5px 0 rgba(0,0,0,0.16), 0 2px 10px 0 rgba(0,0,0,0.12);
+            }
+            .modal-heading{
+                font-family: 'Proxima Nova Bold' !important;
+                color: #ffffff !important;
+            }
+            .form-group-theme{
+                margin-top: 23px;
+            }
+            .fade:not(.show) {
+                opacity: 1;
+            }
+            .inputLockdate{
+                padding-left: 6rem !important;
+            }
+            .datepickerinput{
+                padding-right: 3rem !important;
+            }
+            .modal-dialog {
+                z-index: 1057;
+            }
+            .modal-body {
+                padding: 1rem !important;
+            }
+            .close-lockdatebtn{
+                margin: 0px !important;
+            }
+            .submitBtn{
+                box-shadow: 0 2px 5px 0 rgba(0,0,0,0.16), 0 2px 10px 0 rgba(0,0,0,0.12);
+            }
+            .cancelbtn{
+                margin-left: 8px !important; 
+                box-shadow: 0 2px 5px 0 rgba(0,0,0,0.16), 0 2px 10px 0 rgba(0,0,0,0.12);
+            }
+            .popup-close-btn span{
+                color: #79c03f !important;
+                background: #ffffff !important;
+            }
+           
+    </style>
     <script type="text/javascript">
         var app = angular.module('reportModule',[]);
+        var EditLockDateModel = function () {
+                this.visible = false;
+            };
+
+            EditLockDateModel.prototype.open = function() {
+                this.visible = true;
+            };
+            EditLockDateModel.prototype.close = function() {
+                this.visible = false;
+            };
+
+            /* Model Directive For Deactivation Date*/
+            app.directive('editLockDate', [function() {
+                return {
+                    restrict: 'E',
+                    scope: {
+                        model: '='
+                    },
+                    link: function(scope, element, attributes) {
+                        scope.$watch('model.visible', function(newValue) {
+                            var modalElement = element.find('.modal');
+                            modalElement.modal(newValue ? 'show' : 'hide');
+                           
+                        });
+
+                       
+                        var url_string = $(location).attr("href");
+                        var url = new URL(url_string);
+                        scope.accid = url.searchParams.get("accid");
+                        scope.id = url.searchParams.get("id");
+                        scope.admindriver = false;
+                        scope.showteam = url.searchParams.get("showteam");
+                        scope.admindriver = url.searchParams.get("admindriver");
+                        scope.reportId = '';
+                        if (scope.admindriver == undefined || scope.admindriver == '') {
+                            scope.admindriver = false;
+                        }
+                        
+                        scope.ListAllReports = {!AllReports};
+                        angular.forEach(scope.ListAllReports, function(report){
+                            
+                            if (report.categoryName != undefined) {
+                                report.currentReports.forEach((data) => {
+                                    if (data.reportName === "Variable Reimbursement Report") {
+                                        scope.reportId = data.reportId;
+                                    }
+                                    else if(data.reportName === "Fixed Reimbursement Report"){
+                                        scope.reportId = data.reportId;
+                                    }
+                                    // else if(data.reportName === "Variable Report for Terminated Drivers"){
+                                    //     scope.reportId = data.reportId
+                                    // }
+                                })
+                            }
+                        });
+                
+                        var url_locate = "/app/reportdetail?accid="+scope.accid+"&id="+scope.id+"&reportid="+scope.reportId+"&showteam="+scope.showteam+"&admindriver="+"true";
+                       
+                        scope.updateLockDate = function() {
+                    
+                            scope.lockDate = $('#report-lockdatepicker').val();
+
+                            Visualforce.remoting.Manager.invokeAction(
+                                    '{!$RemoteAction.ReportListController.updateLockDate}',scope.accid,scope.lockDate,
+                                    function(result,event){
+                                    
+                                        if(event.status){
+                                            $('.lockdateModal').modal('hide');
+                                            location.assign(url_locate);    
+                                        }
+                                        else{
+                                            $('.lockdateModal').modal('show');
+                                            toastr.error('Some error has occur');
+                                            
+                                        }
+                                    });
+                        }
+
+                     
+
+                        element.on('shown.bs.modal', function() {
+                            scope.$apply(function() {
+                                scope.model.visible = true;
+                            });
+                        });
+
+                        element.on('hidden.bs.modal', function() {
+                            scope.$apply(function() {
+                                scope.model.visible = false;
+                              
+                            });
+                        });
+                       
+                    },
+                    template: '<div class="modal fade show lockdateModal" tabindex="-1" role="dialog"><div class="modal-dialog modal-dialog-centered"><div class="modal-content rounded-0"><button type="button" class="close popup-close-btn close-lockdatebtn" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button><div class="modal-header"><h5 class="modal-heading">Mileage Lock Date</h5></div><div class="modal-body"><form name="signup" class="form" novalidate="true"><div class="form-group-theme row"><label for="inputLockdate:" class="col-xl-5 col-lg-5 col-md-5 col-sm-5 col-form-label form-lable inputLockdate">Lock Date :</label><div class="col-xl-7 col-lg-7 col-md-7 col-sm-7 datepickerinput"><div class="input-group"><input id="report-lockdatepicker" class="form-control rounded-0" placeholder="Select Lock Date" required="true" ng-model="selectedlockDate" /><div class="input-group-prepend" id=""><span class="input-group-text"><i class="fas fa-calendar-alt"></i></span></div></div></div></div><div class="form-group  justify-content-center text-center"><button class="btn btn-primary submitBtn" ng-click="updateLockDate()">Submit</button><button type="button" class="btn btn-secondary cancelbtn" data-dismiss="modal">Cancel</button></div></form></div></div></div></div>'
+                };
+                 
+            }]);
+
         app.controller('reportController',['$scope',function($scope){
             $scope.ListAllReports = {!AllReports}
             $scope.showtaxdifferently=true;
-            
-
-           angular.forEach($scope.ListAllReports, function(report) 
-            {
+          
+           angular.forEach($scope.ListAllReports, function(report){
                 if(report.categoryName!=undefined && report.categoryName=="Tax Liability Reports")
                 {
                     $scope.showtaxdifferently = false;
                 }
-                
             });
-            
             var url_string = $(location).attr("href");
             var url = new URL(url_string);
             $scope.showteam = url.searchParams.get("showteam");
             $scope.accid = url.searchParams.get("accid");
             $scope.id = url.searchParams.get("id");
             $scope.admindriver = false;
+            $scope.editDateModel = new EditLockDateModel();
             $scope.admindriver = url.searchParams.get("admindriver");
             if($scope.admindriver == undefined || $scope.admindriver == ''){
                 $scope.admindriver = false;
@@ -86,8 +242,10 @@
                 <div ng-repeat="report in ListAllReports">                   
                     <h3 class="mb-30 d-block">{{report.categoryName}}</h3>
                     <div ng-repeat="singlereport in report.currentReports">
-                        <p><a ng-show="!admindriver" ng-href="/app/reportdetail?accid={{accid}}&id={{id}}&reportid={{singlereport.reportId}}&showteam={{showteam}}">{{singlereport.reportName}}</a></p>  
-                        <p><a ng-show="admindriver" ng-href="/app/reportdetail?accid={{accid}}&id={{id}}&reportid={{singlereport.reportId}}&showteam={{showteam}}&admindriver=true">{{singlereport.reportName}}</a></p>  
+                        <!-- <p><a ng-show="!admindriver" ng-href="/app/reportdetail?accid={{accid}}&id={{id}}&reportid={{singlereport.reportId}}&showteam={{showteam}}">{{singlereport.reportName}}</a></p>   -->
+                        <p><a ng-show="singlereport.lockDate" ng-click="editDateModel.open()">{{singlereport.reportName}}</a></p>
+                        <p><a ng-show="!singlereport.lockDate && !admindriver" ng-href="/app/reportdetail?accid={{accid}}&id={{id}}&reportid={{singlereport.reportId}}&showteam={{showteam}}">{{singlereport.reportName}}</a></p>  
+                        <p><a ng-show="!singlereport.lockDate && admindriver" ng-href="/app/reportdetail?accid={{accid}}&id={{id}}&reportid={{singlereport.reportId}}&showteam={{showteam}}&admindriver=true">{{singlereport.reportName}}</a></p>  
                     </div>
                     <div ng-if="report.categoryName=='Tax Liability Reports'">                        
                         <p><a ng-show="!admindriver" href="/app/ReportofDriverCompliance?accid={{accid}}&showteam={{showteam}}&id={{id}}&reportid ='compliancecalculationreport'">Tax Liability</a></p>
@@ -100,7 +258,27 @@
                     <p><a ng-show="admindriver" href="/app/ReportofDriverCompliance?accid={{accid}}&showteam={{showteam}}&id={{id}}&reportid ='compliancecalculationreport'&admindriver=true">Tax Liability</a></p>
                 </div>              
             </div>
+            <edit-lock-Date model="editDateModel"></edit-lock-Date>
         </section>
         <apex:include pageName="EMC_Common_footer"/>
+      
+        <script type="text/javascript">
+            $(document).ready(function () {
+                $('#report-lockdatepicker').datepicker({
+                    format: "yyyy-mm-dd",
+                    autoclose: true,
+                    todayHighlight: true
+                });
+
+                $('#report-lockdatepicker').datepicker('setStartDate',new Date());
+
+                let endlast15day = new Date();
+                endlast15day.setDate(endlast15day.getDate() + 14);
+                $('#report-lockdatepicker').datepicker('setEndDate', endlast15day);
+               
+            });
+          
+            
+       </script>
     </body>
 </apex:page>

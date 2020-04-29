@@ -88,20 +88,33 @@ public class ReportListController_Test {
         insert u;
         //Custom report
 
+        Custom_Report__c currentReport = new Custom_Report__c();
+        currentReport.Name = 'Variable Reimbursement Report';
+        currentReport.Sort_By__c = 'asc';
+        currentReport.Report_For__c = 'Frank Saverino Accessibility';
+        currentReport.Report_Category__c = 'Reimbursement Reports  ';
+        currentReport.Report_Type__c = 'Reimbursements Between 2 Dates For Month Range';
+        currentReport.Use_Manager_List__c = true;
+        currentReport.Report_Header__c = 'Month,Employee ID,Name,E-mail,Monthly Approved Variable Amount';
+        currentReport.Report_Soql__c = 'select Month__c,Contact_Id_Employee_ID__c,Contact_Id_Name__c,Contact_Id_External_Email__c,Monthly_Approved_Variable_Amount__c from Employee_Reimbursement__c where Contact_Id_Deactivated_Date__c =null';
+        currentReport.Numeric_Fields__c = 'Monthly_Approved_Variable_Amount__c';
+        currentReport.Date_Time_Fields__c = 'Contact_Id_Name__c';
+        currentReport.Date_Fields__c = 'Contact_Id_External_Email__c';
+        insert currentReport ; 
 
-        Custom_Report__c rep = new Custom_Report__c();
-        rep.Name = 'Test Productivity Report';
-        rep.Report_Category__c = 'My Custom Reports';
-        rep.Report_For__c = '';
-        rep.Report_Soql__c = 'SELECT id,Name,email from contact where Account.name=\'Test Account\'';
-        rep.Report_Type__c = '';
-        rep.Sort_By__c = 'asc';
-        rep.Sort_From__c = '2';
-        insert rep;
+        // Custom_Report__c rep = new Custom_Report__c();
+        // rep.Name = 'Test Productivity Report';
+        // rep.Report_Category__c = 'My Custom Reports';
+        // rep.Report_For__c = 'tesst';
+        // rep.Report_Soql__c = 'SELECT id,Name,email from contact where Account.name=\'Test Account\'';
+        // rep.Report_Type__c = 'test';
+        // rep.Sort_By__c = 'asc';
+        // rep.Sort_From__c = '2';
+        // insert rep;
 
         
         Report_Accessibility__c repAcc = new Report_Accessibility__c();
-        repAcc.Custom_Report__c = rep.Id;
+        repAcc.Custom_Report__c = currentReport.Id;
         repAcc.User__c = u.Id;
         insert repAcc;
 

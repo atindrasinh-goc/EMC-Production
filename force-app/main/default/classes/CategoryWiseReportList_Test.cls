@@ -7,6 +7,6 @@ public class CategoryWiseReportList_Test{
         CategoryWiseReportList.Reports obj1 = new CategoryWiseReportList.Reports();
         obj1.reportId = 'test';
         obj1.reportName = 'test';
-        
+        obj1.lockDate = false;    
     }
 }

@@ -440,6 +440,7 @@
         }
         .syncMileageBtn{
             font-size: 12px !important;
+            padding: 2px 8px !important;
         }
         .btn-primary-approve {
             color: #fff !important;
@@ -521,7 +522,9 @@
             padding-top: 0px !important;
             padding-left: 1px !important;
         }
-
+        .w-10rem{	
+            width: 7rem;	
+        }
         /*admindriverdashboardfromadminmanager page css*/
 
         .admin-driver-dashboard-address h5 {

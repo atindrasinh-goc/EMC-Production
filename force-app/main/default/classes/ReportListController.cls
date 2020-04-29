@@ -45,7 +45,7 @@ public with sharing class ReportListController
 	{	
 
 		Map<String,List<Report_Accessibility__c>> obj_map_report_Accessibility = new Map<String,List<Report_Accessibility__c>>();
-		for(Report_Accessibility__c obj_currentreportaccesibilty:[SELECT Custom_Report__r.ownerid,Custom_Report__r.Name,Custom_Report__c,Custom_Report__r.Report_Category__c FROM Report_Accessibility__c WHERE user__r.contactid=:getContactid() Order By Custom_Report__r.Report_Category__c])
+		for(Report_Accessibility__c obj_currentreportaccesibilty:[SELECT Custom_Report__r.ownerid,Custom_Report__r.Name,Custom_Report__c,Custom_Report__r.Report_Category__c,Custom_Report__r.Show_Lock_Date__c FROM Report_Accessibility__c WHERE user__r.contactid=:getContactid() Order By Custom_Report__r.Report_Category__c])
 		{
 			if(obj_map_report_Accessibility.containsKey(obj_currentreportaccesibilty.Custom_Report__r.Report_Category__c))
 			{
@@ -65,12 +65,15 @@ public with sharing class ReportListController
 		{
 			CategoryWiseReportList obj = new CategoryWiseReportList();
 			obj.categoryName = s;
+			System.debug('obj.categoryName'+obj.categoryName);
 			List<CategoryWiseReportList.Reports> reportsList = new List<CategoryWiseReportList.Reports>();
-			for(Report_Accessibility__c r:obj_map_report_Accessibility.get(s))
+			for(Report_Accessibility__c r : obj_map_report_Accessibility.get(s))
 			{
 				CategoryWiseReportList.Reports obj_report = new CategoryWiseReportList.Reports();
 				obj_report.reportId = r.Custom_Report__c;
-				obj_report.reportName = r.Custom_Report__r.Name;				
+				obj_report.reportName = r.Custom_Report__r.Name;
+				System.debug('r.Custom_Report__r.Name;'+r.Custom_Report__r.Show_Lock_Date__c);	
+				obj_report.lockDate = r.Custom_Report__r.Show_Lock_Date__c;			
 				reportsList.add(obj_report);
 			}
 			obj.currentReports = reportsList;
@@ -78,5 +81,12 @@ public with sharing class ReportListController
 		}
 
 		return JSON.serialize(obj_CategoryWiseReportList);		
+	}
+
+	//AI-000426
+	@RemoteAction
+	public static void updateLockDate(String accountId, String lockDate){
+		System.debug('accountId'+accountId+''+'lockDate'+lockDate);
+		WrapperUtils.updateLockDate(accountId,lockDate);
 	}
 }

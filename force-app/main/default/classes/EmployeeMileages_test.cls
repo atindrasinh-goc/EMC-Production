@@ -31,6 +31,8 @@ public class EmployeeMileages_test {
             em.fuelRate='';
             em.maintTyre='';
             em.totalMileages='';
+            em.lockdate = '';
+            em.isLockDate = false;
         Test.stopTest();
     }
 }

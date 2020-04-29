@@ -239,7 +239,7 @@
                 width: 175px !important;
             }
             .mr-15{
-                margin-right: 15px !important;
+                margin-right: 5px !important;
             }
             .mr-11{
                 margin-right: 11px !important;
@@ -358,7 +358,9 @@
                                     scope.init()
                                 };
                                 scope.init = function(){
+                                   
                                     scope.showData = [];
+                                    scope.IsAllEnable = false;
                                     scope.total = 0 ;
                                     scope.totalvariablerate = 0 ;
                                     scope.maxPage = 0;
@@ -388,7 +390,8 @@
                                 var lstInd = scope.lastIndex;
                                 let tl = 0;
                                 let tv = 0;
-                                let count = 0;
+                                let lockdatecount = 0;
+                                var count = 0;
                                 for (var i = scope.lastIndex; i < lstInd + scope.itemPerPageV; i++) {
                                   let isSearch = scope.searchedArray.length>0?true:false
                                     if(isSearch){
@@ -410,19 +413,27 @@
                                     }
                                     scope.lastIndex = i + 1;
                                 }
-                                 angular.forEach(scope.showData, function (item) {
-                                       if (item.isSelected || item.isChecked) {
-                                         count++;
-                                       }
-                    
-                                 });
-              
-                                 if (count === 0) {
-                                  scope.displayBtn = false;
-                                 }
-                                 else {
-                                   scope.displayBtn = true;
-                                 }
+                                
+                                angular.forEach(scope.showData,function(item){
+                                    if(item.isSelected || item.isChecked){
+                                        count++;
+                                    }
+                                    if(item.isLockDate){
+                                        lockdatecount++;
+                                    }
+                                });
+                                if(lockdatecount === 0){
+                                    if(count === 0){
+                                        scope.displayBtn = false;
+                                    }
+                                    else{
+                                        scope.displayBtn = true;
+                                    }
+                                }
+                                else{
+                                    scope.displayBtn = false;
+                                }
+
                                 scope.total = tl.toFixed(2);
                                 scope.totalvariablerate = tv.toFixed(2);
                                 scope.currentPage++;
@@ -431,9 +442,10 @@
                                 scope.showData = [];
                                 scope.total = 0;
                                 scope.totalvariablerate = 0;
+                                let count = 0;
+                                let lockdatecount = 0;
                                 let tl = 0;
                                 let tv = 0;
-                                let count = 0;
                                 var lstInd = scope.lastIndex;
                                 for (var i = scope.lastIndex - (scope.itemPerPageV*2); i < lstInd - scope.itemPerPageV; i++) {
                                  let isSearch = scope.searchedArray.length>0?true:false
@@ -456,19 +468,27 @@
                                     }
                                     scope.lastIndex = i + 1;
                                 }
-                                 angular.forEach(scope.showData, function (item) {
-                                   if (item.isSelected || item.isChecked) {
-                                         count++;
-                                   }
-                    
-                                 });
-              
-                                 if (count === 0) {
-                                      scope.displayBtn = false;
-                                 }
-                                 else {
-                                   scope.displayBtn = true;
-                                 }
+
+                                angular.forEach(scope.showData,function(item){
+                                    if(item.isSelected || item.isChecked){
+                                        count++;
+                                    }
+                                    if(item.isLockDate){
+                                        lockdatecount++;
+                                    }
+                                });
+                                if(lockdatecount === 0){
+                                    if(count === 0){
+                                        scope.displayBtn = false;
+                                    }
+                                    else{
+                                        scope.displayBtn = true;
+                                    }
+                                }
+                                else{
+                                    scope.displayBtn = false;
+                                }
+
                                 scope.total = tl.toFixed(2);
                                 scope.totalvariablerate = tv.toFixed(2);
                                 scope.currentPage--;
@@ -619,12 +639,13 @@
                                 
                                 scope.searchbarformodal = false;
                                 scope.callfn = function(flagstatus){
+                                    debugger
                                     scope.init();
                                     scope.allVariableAmount = 0;
                                     scope.alltotalMileage = 0;
                                     scope.model.mileageList
                                     
-                                    let approvedcount = 0, flagcount = 0, approvedchkcount = 0;
+                                    let approvedcount = 0, flagcount = 0, chkcount = 0, lockdatecount = 0;
 
                                     if(scope.showData.length == 0) {
                                         scope.checkAllShowApprove = false;
@@ -647,45 +668,71 @@
                                         angular.forEach(scope.model.mileageList, function(item) {
                                             /*scope.alltotalMileage = scope.alltotalMileage + parseFloat(item.mileage);
                                             scope.allVariableAmount = scope.allVariableAmount + parseFloat(item.variableamount);*/
+                                            if(item.isLockDate === true){
+                                                lockdatecount++;
+                                            }
                                             tm = tm + parseFloat(item.mileage);
                                             scope.alltotalMileage = tm.toFixed(2);
                                             tv = tv + parseFloat(item.variableamount);
                                             scope.allVariableAmount = tv.toFixed(2);
-                                            if(item.status != 'Approved' && item.mileage > 0) {
-                                                approvedchkcount++;    
+                                            if((item.status != 'None' && item.status != '') && item.mileage > 0) {
+                                                chkcount++;
                                                 scope.checkAllShowApprove = true;
                                                 scope.checkAllShowFlag = true;
-                                                if(item.isSelected){   
+                                                if(item.isSelected){
                                                     approvedcount++;
                                                 } else if(item.isChecked){
                                                     flagcount++;
                                                 }
                                             }
                                         });
-                                        if(approvedchkcount == 0 && approvedcount == 0){
+                                        if(chkcount == 0 && approvedcount == 0){
                                             scope.checkAllShowApprove = false;
                                         }
                                         else
                                         {
-                                            if(approvedchkcount == approvedcount){
+                                            if(chkcount == approvedcount){
                                                 scope.IsAllChecked = true;
                                                 scope.IsAllCheckedFlag = false;
-                                            }   
+                                            }
                                         }
-                                        if(approvedchkcount == 0 && flagcount == 0){
+                                       
+                                        if(chkcount == 0 && flagcount == 0){
                                             scope.checkAllShowFlag = false;
                                         }
                                         else
                                         {
-                                            if(approvedchkcount == flagcount){
+                                            if(chkcount == flagcount){
                                                 scope.IsAllCheckedFlag = true;
                                                 scope.IsAllChecked = false;
-                                            } 
+                                            }
                                         }
+                                        
                                         if(flagcount == 0 && approvedcount == 0)
-                                            scope.displayBtn = false; 
+                                            scope.displayBtn = false;
                                         else
-                                            scope.displayBtn = true; 
+                                            scope.displayBtn = true;
+
+                                        if(lockdatecount == 0){
+                                            scope.IsAllEnable = false;
+                                            scope.checkAllShowApprove = true;
+                                            scope.checkAllShowFlag = true;
+                                            if(approvedcount!=0 || flagcount!=0){
+                                                scope.displayBtn = true;
+                                            }
+                                            else{
+                                                scope.displayBtn = false;
+                                            }
+                                           
+                                            
+                                        }
+                                        else{
+
+                                            scope.displayBtn = false;
+                                            scope.IsAllEnable = true;
+                                            scope.checkAllShowApprove = true;
+                                            scope.checkAllShowFlag = true;
+                                        }
                                     }
                                     if(flagstatus != '')
                                     {
@@ -734,10 +781,16 @@
                                     scope.selectedmileageidlist = [];
                                     var total = scope.model.mileageList.length;
                                     var count = 0;
+                                    var perpagecount = 0;
                                     var totalforshowdata =  scope.showData.length;
-                                    angular.forEach(scope.showData, function(item) {
+                                    angular.forEach(scope.model.mileageList, function(item) {
                                         if(item.isSelected){
                                             count++;
+                                        }
+                                    });
+                                    angular.forEach(scope.showData, function(item) {
+                                        if(item.isSelected){
+                                            perpagecount++;
                                             scope.selectedmileageidlist.push(item.id);
                                             scope.selecteddid = item.driverid;
                                             if(item.isChecked){
@@ -745,7 +798,7 @@
                                             }
                                         }
                                     });
-                                    if(total == count && (total == totalforshowdata && ( total!= 0 && totalforshowdata!=0)))
+                                    if(total == count && (total!= 0 && totalforshowdata!=0))
                                     {
                                         scope.model.mileageList = scope.showData;
                                         scope.IsAllChecked = true;
@@ -800,13 +853,19 @@
                                     scope.selectedrejectedmileageidlist = [];
                                     var total = scope.model.mileageList.length;
                                     var count = 0;
+                                    var perpagecount = 0;
                                     var totalforshowdata =  scope.showData.length;
-                                    scope.showData
+                                    
+                                    angular.forEach(scope.model.mileageList, function(item) {
+                                        if(item.isChecked){
+                                            count++;
+                                        }
+                                    });
                                     
                                     angular.forEach(scope.showData, function(item) {
                                         if(item.isChecked){
                                             
-                                            count++;
+                                            perpagecount++;
                                             scope.selecteddid = item.driverid;
                                             scope.selectedmileageid = item.id;
                                             scope.selectedrejectedmileageidlist.push(item.id);
@@ -816,9 +875,9 @@
                                         }
                                     });
                                     
-                                    if(total == count && (total == totalforshowdata && ( total!= 0 && totalforshowdata!=0)))
+                                    if(total == count && (total!= 0 && totalforshowdata!=0))
                                     {
-                                        scope.model.mileageList = scope.showData;
+                                       // scope.model.mileageList = scope.showData;
                                         scope.IsAllCheckedFlag = true;
                                         scope.IsAllChecked = false;
                                     }
@@ -856,6 +915,7 @@
                                 });
                                 
                                 scope.onClick = function() {
+                                    debugger
                                     scope.model.mileageList
                                     scope.updateformileagelist = [];
 
@@ -881,7 +941,7 @@
                                     Visualforce.remoting.Manager.invokeAction(
                                     '{!$RemoteAction.ManagerDashboardController.approveMileages}',JSON.stringify(truecheck),JSON.stringify(trueselect),scope.model.name,scope.model.emailOfEmployee,
                                     function(result, event) {
-                                  
+                                        debugger
                                         if(event.status && result == 'success'){
                                             var tempArray = JSON.parse(JSON.stringify(scope.model.mileageList));
                                             if(tempArray.length !== scope.updateformileagelist.length){
@@ -917,7 +977,7 @@
                                 };
                             },
                             /* AI-000417 --> */
-                            template: '<div class="modal fade driver-dashboard-monthrecord show in" tabindex="-1" role="dialog"aria-labelledby="driver-dashboard-monthrecord" id="driver-dashboard-monthrecord"><div class="modal-dialog modal-xl modal-dialog-centered"><div class="modal-content rounded-0"><button type="button" class="close popup-close-btn" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button><div class="modal-body"><h4 ng-model="month">{{model.name}}</h4><div class="col-md-6 ml-45"><span>Trips per page : </span><select class="form-control numberSelect" name="recordsPerPage" ng-model="itemPerPage" ng-options="page for page in pageSizeOptions" ng-change="pageSizeChanged()"></select></div><div class="modal-divider" ></div><div class="table-responsive" ><div id="example_filter" class="dataTables_filter pull-right d-block" ng-show="searchbarformodal"><div class="input-group w-85" ><i id="filtericon" class="fa fa-search" ng-if="search.length===0"></i><input class="form-control py-2 border-right-0 border" type="search" ng-model="search" ng-change="updatePagination()" placeholder="Search..." aria-controls="example" id="example-search-input" /></div></div><table id="driver-dashbord-month-model" class="table table-striped dt-responsive nowrap no-footer dataTable" cellspacing="0" width="100%"><thead><tr><th ng-click="sort(\'tripdate\')">Trip Date<span ng-show="sortKey == \'tripdate\'" class="sort-icon pull-right" ng-class="{\'fa fa-chevron-up\':reverse,\'fa fa-chevron-down\':!reverse}"></span></th><th ng-click="sort(\'origin\')">Origin<span class="sort-icon pull-right" ng-class="{\'fa fa-chevron-up\':reverse,\'fa fa-chevron-down\':!reverse}" ng-show="sortKey == \'origin\'"></span></th><th ng-click="sort(\'destination\')">Dest.<span class="sort-icon pull-right" ng-class="{\'fa fa-chevron-up\':reverse,\'fa fa-chevron-down\':!reverse}" ng-show="sortKey == \'destination\'"></span></th><th ng-click="sort(\'submitteddate\')">Submitted<span class="sort-icon pull-right" ng-class="{\'fa fa-chevron-up\':reverse,\'fa fa-chevron-down\':!reverse}" ng-show="sortKey == \'submitteddate\'"></span></th><th ng-click="sort(\'mileage\')">Mileage<span class="sort-icon pull-right" ng-class="{\'fa fa-chevron-up\':reverse,\'fa fa-chevron-down\':!reverse}" ng-show="sortKey == \'mileage\'"></span></th><th ng-click="sort(\'variableamount\')">Variable Amount<span class="sort-icon pull-right" ng-class="{\'fa fa-chevron-up\':reverse,\'fa fa-chevron-down\':!reverse}" ng-show="sortKey == \'variableamount\'"></span></th><th><button class="btn btn-primary pull-right">Approve <input type="checkbox" ng-click="CheckUncheckAll()" ng-model="IsAllChecked" ng-show="checkAllShowApprove"/></button></th><th class="vw-4"><button class="btn btn-third pull-right">Flag </span><input type="checkbox" ng-show="checkAllShowFlag" ng-click="CheckUncheckAllForFlag()" ng-model="IsAllCheckedFlag"></button></th></tr></thead><tbody class="table-a-link"><tr ng-repeat="mil in showData|filter:search|itemsPerPage:itemPerPage" ><td ng-model="mil.tripdate">{{ mil.tripdate}}</td><td ng-model="mil.origin">{{ mil.origin}}</td><td ng-model="mil.destination">{{ mil.destination }}</td><td ng-model="mil.submitteddate">{{ mil.submitteddate }}</td><td ng-model="mil.mileage" id="modalmileageid">{{ mil.mileage }}</td><td id="modalvariableid" ng-model="mil.variableamount">${{ mil.variableamount }}</td><td ng-model="mil.status"><div ng-model="mil.status" ng-if="mil.status ==\'Approved\' && mil.mileage > \'0\'"></div><div ng-if="mil.status !=\'Approved\' && mil.mileage > \'0\'"><input type="checkbox" ng-model="mil.isSelected" class="myteamcheck1" ng-click="CheckUncheckHeader();"></div></td><td ng-model="mil.status"><div ng-model="mil.status" ng-if="mil.mileage > \'0\'"></div><div class="mr-15 pull-right" ng-if="mil.mileage > \'0\'"><input type="checkbox" ng-model="mil.isChecked"  class="flagcheck" ng-click="CheckUncheckHeaderForFlag();"></div></td></tr><tr ng-if="showData.length == 0"><td colspan="8" class="table-nodata">No Mileage Available</td></tr></tbody><tfoot ng-if="displayDownloadBtn"><tr><th scope="row">Total</th><th colspan="3"> </th><th>{{total}} / {{alltotalMileage}}</th><th>${{totalvariablerate}} / ${{allVariableAmount}}</th><th colspan="2"></th></tr></tfoot></table></div></div> <div class="modal-footer"><div class="col-md-6" ng-if="displayDownloadBtn">Page {{currentPage}} of {{maxPage}} </div><div class="col-md-6"><ul ng-if="displayDownloadBtn" class="pagination float-right paginationformodal"><li class="page-item " ng-class="{\'disable-pagination\':currentPage === 1}"><a class="page-link" ng-click="previous()">Previous</a></li><li class="page-item"><a class="page-link" >{{currentPage}}</a></li><li class="page-item" ng-class="{\'disable-pagination\':currentPage === maxPage}"><a class="page-link" ng-click="next()" href="#">Next</a></li></ul><div class="paginationformodaldownloadbutton"><div excel-export="true" export-data="data()" ng-show="displayDownloadBtn" file-name="{{model.fileName}}"/><button class="btn btn-secondary float-right" ng-click="onClick();" ng-show="displayBtn">Submit</button></div></div></div></div></div></div></div></div></div>'
+                            template: '<div class="modal fade driver-dashboard-monthrecord show in" tabindex="-1" role="dialog"aria-labelledby="driver-dashboard-monthrecord" id="driver-dashboard-monthrecord"><div class="modal-dialog modal-xl modal-dialog-centered"><div class="modal-content rounded-0"><button type="button" class="close popup-close-btn" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button><div class="modal-body"><h4 ng-model="month">{{model.name}}</h4><div class="col-md-6 ml-45"><span>Trips per page : </span><select class="form-control numberSelect" name="recordsPerPage" ng-model="itemPerPage" ng-options="page for page in pageSizeOptions" ng-change="pageSizeChanged()"></select></div><div class="modal-divider" ></div><div class="table-responsive" ><div id="example_filter" class="dataTables_filter pull-right d-block" ng-show="searchbarformodal"><div class="input-group w-85" ><i id="filtericon" class="fa fa-search" ng-if="search.length===0"></i><input class="form-control py-2 border-right-0 border" type="search" ng-model="search" ng-change="updatePagination()" placeholder="Search..." aria-controls="example" id="example-search-input" /></div></div><table id="driver-dashbord-month-model" class="table table-striped dt-responsive nowrap no-footer dataTable" cellspacing="0" width="100%"><thead><tr><th ng-click="sort(\'tripdate\')">Trip Date<span ng-show="sortKey == \'tripdate\'" class="sort-icon pull-right" ng-class="{\'fa fa-chevron-up\':reverse,\'fa fa-chevron-down\':!reverse}"></span></th><th ng-click="sort(\'origin\')">Origin<span class="sort-icon pull-right" ng-class="{\'fa fa-chevron-up\':reverse,\'fa fa-chevron-down\':!reverse}" ng-show="sortKey == \'origin\'"></span></th><th ng-click="sort(\'destination\')">Dest.<span class="sort-icon pull-right" ng-class="{\'fa fa-chevron-up\':reverse,\'fa fa-chevron-down\':!reverse}" ng-show="sortKey == \'destination\'"></span></th><th ng-click="sort(\'submitteddate\')">Submitted<span class="sort-icon pull-right" ng-class="{\'fa fa-chevron-up\':reverse,\'fa fa-chevron-down\':!reverse}" ng-show="sortKey == \'submitteddate\'"></span></th><th ng-click="sort(\'mileage\')">Mileage<span class="sort-icon pull-right" ng-class="{\'fa fa-chevron-up\':reverse,\'fa fa-chevron-down\':!reverse}" ng-show="sortKey == \'mileage\'"></span></th><th ng-click="sort(\'variableamount\')">Variable Amount<span class="sort-icon pull-right" ng-class="{\'fa fa-chevron-up\':reverse,\'fa fa-chevron-down\':!reverse}" ng-show="sortKey == \'variableamount\'"></span></th><th><button class="btn btn-primary pull-right">Approve <input type="checkbox" ng-click="CheckUncheckAll()" ng-model="IsAllChecked" ng-show="checkAllShowApprove" ng-disabled="IsAllEnable"/></button></th><th class="vw-4"><button class="btn btn-third pull-right">Flag </span><input type="checkbox" ng-show="checkAllShowFlag" ng-click="CheckUncheckAllForFlag()" ng-model="IsAllCheckedFlag" ng-disabled="IsAllEnable"></button></th></tr></thead><tbody class="table-a-link"><tr ng-repeat="mil in showData|filter:search|itemsPerPage:itemPerPage" ><td ng-model="mil.tripdate">{{ mil.tripdate}}</td><td ng-model="mil.origin">{{ mil.origin}}</td><td ng-model="mil.destination">{{ mil.destination }}</td><td ng-model="mil.submitteddate">{{ mil.submitteddate }}</td><td ng-model="mil.mileage" id="modalmileageid">{{ mil.mileage }}</td><td id="modalvariableid" ng-model="mil.variableamount">${{ mil.variableamount }}</td><td ng-model="mil.status"><div ng-model="mil.status" ng-if="mil.status ==\'Approved\' && mil.mileage > \'0\'"></div><div ng-if="mil.mileage > \'0\'" class="mr-15 pull-right"><input type="checkbox" ng-model="mil.isSelected" class="myteamcheck1" ng-click="CheckUncheckHeader();" ng-disabled="mil.isLockDate"></div></td><td ng-model="mil.status"><div ng-model="mil.status" ng-if="mil.mileage > \'0\'"></div><div class="mr-15 pull-right" ng-if="mil.mileage > \'0\'"><input type="checkbox" ng-model="mil.isChecked"  class="flagcheck" ng-click="CheckUncheckHeaderForFlag();" ng-disabled="mil.isLockDate"></div></td></tr><tr ng-if="showData.length == 0"><td colspan="8" class="table-nodata">No Mileage Available</td></tr></tbody><tfoot ng-if="displayDownloadBtn"><tr><th scope="row">Total</th><th colspan="3"> </th><th>{{total}} / {{alltotalMileage}}</th><th>${{totalvariablerate}} / ${{allVariableAmount}}</th><th colspan="2"></th></tr></tfoot></table></div></div> <div class="modal-footer"><div class="col-md-6" ng-if="displayDownloadBtn">Page {{currentPage}} of {{maxPage}} </div><div class="col-md-6"><ul ng-if="displayDownloadBtn" class="pagination float-right paginationformodal"><li class="page-item " ng-class="{\'disable-pagination\':currentPage === 1}"><a class="page-link" ng-click="previous()">Previous</a></li><li class="page-item"><a class="page-link" >{{currentPage}}</a></li><li class="page-item" ng-class="{\'disable-pagination\':currentPage === maxPage}"><a class="page-link" ng-click="next()" href="#">Next</a></li></ul><div class="paginationformodaldownloadbutton"><div excel-export="true" export-data="data()" ng-show="displayDownloadBtn" file-name="{{model.fileName}}"/><button class="btn btn-secondary float-right" ng-click="onClick();" ng-show="displayBtn">Submit</button></div></div></div></div></div></div></div></div></div>'
                         };
                     }
                 ]);
@@ -1047,6 +1107,7 @@
                     $scope.checkboxObj.IsAllCheckedForApprove = false;
                     angular.forEach($scope.AllDriversLastMonthReimbursements, function (item) {
                         item.isSelected = false;
+                        item.isLockDate = false;
                         if(item.totalMileages > 0.00 && item.status == 'Approved')
                             $scope.displayApprovebtn = false;
                         else
@@ -1298,30 +1359,37 @@
                     }   
                 }
 
-                $scope.unApprovedCheckUncheckAll = function (checkAllShowForUnApprove) {
-                    $scope.checkboxObj.IsAllCheckedforunaprove = checkAllShowForUnApprove
+                $scope.unApprovedCheckUncheckAll = function (IsAllCheckedforunaprove) {
+                   
+                    var count = 0;
+                    $scope.checkboxObj.IsAllCheckedforunaprove = IsAllCheckedforunaprove
                     if($scope.checkboxObj.IsAllCheckedforunaprove == true) {
                         $scope.displayUnapprovedBtn = true;
                     } else {
                         $scope.displayUnapprovedBtn = false;
                     }
+
                     angular.forEach($scope.AllDriversLastMonthUnapprovedReimbursementsclone, function(j) {
                         j.isSelected = $scope.checkboxObj.IsAllCheckedforunaprove;
-                        angular.forEach($scope.AllDriversLastMonthUnapprovedReimbursementsClone, function (item) {
+                    });
+                    angular.forEach($scope.AllDriversLastMonthUnapprovedReimbursementsclone, function (item) {
+                     
                         if(item.isSelected)
                         {
+                           
                             if(item.reimbursementIdList.length>0)
                             {
+                                
                                 angular.forEach(item.reimbursementIdList, function (reimb) 
                                 {
                                         $scope.unApprovedReimbusement.push(reimb);
                                 });
                                     
                             }                            
-                           
+                            count++;
                         }
                     });
-                    });
+                
                 }
 
                 $scope.CheckUncheckHeaderUnapprove = function(elem) {
@@ -1480,6 +1548,7 @@
                 };
 
                 $scope.unapproveReimbursementsofmanager = function() {
+                  
                     $('#spinner').show();
                     $scope.unapprovereimbursements = [];
                     for(var i=0;i<$scope.AllDriversLastMonthUnapprovedReimbursementsclone.length; i++) {
@@ -1545,6 +1614,7 @@
                         $scope.isUnapprovedTab=true;    
                     }
                     $scope.$modalInstance.close();
+                    location.reload();
                 };
                 $scope.viewchartdata = new viewChartDialogModel(false);
                 $scope.viewchart = function() {
@@ -1568,6 +1638,39 @@
                                 var resultdata = result.replace(/\\/g,'');
                                 $scope.mileagesList1 = JSON.parse(resultdata);
                                 $scope.mileagesList = $scope.mileagesList1.mileagesList;
+                                angular.forEach($scope.mileagesList, function (item) {
+
+                                    if (item.lockdate != null) {
+                                        item.isLockDate = true;
+                                        if (item.status === "Approved") {
+                                            item.isSelected = true;
+                                        }
+                                        else if (item.status === "Rejected") {
+                                            item.isChecked = true;
+                                        }
+                                        else if (item.status === "Not Approved Yet") {
+                                            item.isSelected = false;
+                                            item.isChecked = false;
+                                        }
+                                    }
+                                    else if (item.lockdate === null) {
+
+                                        item.isLockDate = false;
+                                        if (item.status === "Approved") {
+                                            item.isSelected = true;
+                                        }
+                                        else if (item.status === "Rejected") {
+                                            item.isChecked = true;
+
+                                        }
+                                        else if (item.status === "Not Approved Yet") {
+                                            item.isSelected = false;
+                                            item.isChecked = false;
+
+                                        }
+                                    }
+
+                                });
                                 $scope.emailOfEmployee = '{!emailofEmployee}';
                                 $scope.nameofEmployee= '{!nameofEmployee}';
                                 $scope.exportReimList = [];
@@ -1612,9 +1715,8 @@
                             if(event.status && result != null) { 
                                 $scope.AllDriversLastMonthUnapprovedReimbursementsclone = JSON.parse(result);
                                 $('#spinner').hide();
-                                location.reload();
                                 $scope.$apply();
-                               
+                                $scope.loadpage();
                             }
                         },
                         {escape: false}
@@ -1860,6 +1962,7 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.6.0/Chart.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-chart.js/1.1.1/angular-chart.min.js"></script> 
         <script>
+            Visualforce.remoting.timeout = 120000;
             $(function() {
                 $('.numinput').on('input', function() {
                     this.value = this.value

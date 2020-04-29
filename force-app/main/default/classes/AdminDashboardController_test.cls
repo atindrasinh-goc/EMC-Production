@@ -68,8 +68,10 @@ public class AdminDashboardController_test {
         }
         System.debug('obj_EmployeeMileages_list1'+obj_EmployeeMileages_list1);
         System.debug('obj_EmployeeMileages_list2'+obj_EmployeeMileages_list2);
-
-        // AdminDashboardController.approveMileages(JSON.serialize(obj_EmployeeMileages_list1),JSON.serialize(obj_EmployeeMileages_list2));
+        // AdminDashboardController.approveMileages(null,null,selectedDriver.Name,selectedDriver.Email);
+        
+        AdminDashboardController.approveMileages(null,null,JSON.serialize(obj_EmployeeMileages_list1),JSON.serialize(obj_EmployeeMileages_list2));
+        
         Test.stopTest();
     }
 }

@@ -28,6 +28,8 @@ public with sharing class EmployeeMileages
     public String totalrejected {get;set;}
     public String notes {get;set;}
     public String id {get;set;}
+    public String lockdate {get;set;}
+    public boolean isLockDate {get;set;}
     public EmployeeMileages() 
     {
         

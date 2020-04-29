@@ -192,17 +192,16 @@ public with sharing class WrapperUtils
         }
 
         if(currentContact.Role__c  !=  null && currentContact.Role__c  !=  '') {
-            currentEmployeeDetail.role=currentContact.Role__c;    
+            currentEmployeeDetail.role = currentContact.Role__c;    
         }
-        
+          
         if(currentContact.Freeze__c != null){
             currentEmployeeDetail.freeze = currentContact.Freeze__c.format();
         }
         else {
             currentEmployeeDetail.freeze = '';
         }
-
-        currentEmployeeDetail.managerId=currentContact.Manager__c;    
+        currentEmployeeDetail.managerId = currentContact.Manager__c;    
         //currentEmployeeDetail.managerId=currentContact.Manager__c;    
         
         if(currentContact.email != null)
@@ -295,6 +294,7 @@ public with sharing class WrapperUtils
         currentContact.MailingCity = currentEmployeeDetail.city;
         currentContact.MailingState = currentEmployeeDetail.state;
         currentContact.Employee_ID__c = currentEmployeeDetail.employeeId;
+        
         if(currentEmployeeDetail.appVersion!=null)
         {    
             currentContact.App__c = currentEmployeeDetail.appVersion;
@@ -378,6 +378,7 @@ public with sharing class WrapperUtils
             currentContact.Deactivated_Date__c =null;
         }
 
+        
         if(currentEmployeeDetail.freeze  !=  null)
         {
             List<String> freezeDateSplitted = new List<String>();
@@ -439,6 +440,7 @@ public with sharing class WrapperUtils
 
     public static EmployeeMileages getMileagesOfReimbursement(Employee_Mileage__c employeeMileage)
     {
+        System.debug('getMileagesOfReimbursement ----');
         EmployeeMileages currentEmployeeMileage = new EmployeeMileages();
         currentEmployeeMileage.id=employeeMileage.id;
         currentEmployeeMileage.isSelected = false;
@@ -478,6 +480,26 @@ public with sharing class WrapperUtils
         {
             currentEmployeeMileage.tracingstyle=employeeMileage.Tracing_Style__c;
         }
+        //Below code is done by Sanjaybhai
+        /*Timezone tz = UserInfo.getTimeZone();
+        // if(employeeMileage.TimeZone__c != null){
+        //     //tz = Timezone.getTimeZone(employeeMileage.TimeZone__c);
+        // }
+        
+        if(employeeMileage.ConvertedStartTime__c  != null )
+        {
+           DateTime startTime = employeeMileage.ConvertedStartTime__c;
+           //currentEmployeeMileage.starttime = startTime.addSeconds(tz.getOffset(startTime)/1000 ).format('h:mm a', tz.toString());
+           currentEmployeeMileage.starttime = startTime.format('h:mm a','America/Panama');
+        }
+        
+        if(employeeMileage.ConvertedEndTime__c  != null)
+        {
+           DateTime endTime = employeeMileage.ConvertedEndTime__c ;
+           //currentEmployeeMileage.endtime = endTime.addSeconds(tz.getOffset(endTime)/1000 ).format('h:mm a', tz.toString());
+           currentEmployeeMileage.endTime = endTime.format('h:mm a','America/Panama');
+        }*/
+
         if(employeeMileage.StartTime__c != null)
         {
            
@@ -490,6 +512,7 @@ public with sharing class WrapperUtils
            DateTime endTime = employeeMileage.EndTime__c;
            currentEmployeeMileage.endtime=endTime.formatGMT('h:mm a');
         }
+        
         if(employeeMileage.Day_Of_Week__c != null)
         {
             currentEmployeeMileage.dayofweek=employeeMileage.Day_Of_Week__c;
@@ -528,6 +551,22 @@ public with sharing class WrapperUtils
                 currentEmployeeMileage.approveddate  = approveDateSplitted[1]+'/'+approveDateSplitted[2]+'/'+approveDateSplitted[0].substring(2,4);
            }
         }
+
+        //AI-000426
+        if(employeeMileage.EmployeeReimbursement__r.Mileage_Lock_Date__c != null)
+        {
+           if(String.valueOf(employeeMileage.EmployeeReimbursement__r.Mileage_Lock_Date__c).contains('-'))
+           {
+               System.debug('employeeMileage.EmployeeReimbursement__r.Mileage_Lock_Date__c'+employeeMileage.EmployeeReimbursement__r.Mileage_Lock_Date__c);
+                List<String> lockDateSplitted = new List<String>();
+                lockDateSplitted = String.valueOf(employeeMileage.EmployeeReimbursement__r.Mileage_Lock_Date__c).split('-');
+                currentEmployeeMileage.lockdate  = lockDateSplitted[1]+'/'+lockDateSplitted[2]+'/'+lockDateSplitted[0].substring(2,4);
+                system.debug('currentEmployeeMileage.lockdate'+currentEmployeeMileage.lockdate);
+                currentEmployeeMileage.isLockDate = true;
+           }
+        }
+
+
         Date createddate = Date.valueOf(employeeMileage.CreatedDate);
         if(String.valueOf(createddate).contains('-'))
         {
@@ -544,6 +583,7 @@ public with sharing class WrapperUtils
         currentEmployeeMileage.month  = employeeMileage.EmployeeReimbursement__r.month__c;
         currentEmployeeMileage.reimbursementid  = employeeMileage.EmployeeReimbursement__c;
         currentEmployeeMileage.driverid = employeeMileage.EmployeeReimbursement__r.Contact_Id__c;
+        System.debug('currentEmployeeMileage'+currentEmployeeMileage);
         return currentEmployeeMileage;
     }
     public static Contact getNewContact(EmployeeDetails currentEmployeeDetail)
@@ -564,6 +604,7 @@ public with sharing class WrapperUtils
         currentContact.Adjust_Ded_Code_Variable__c = 'VR';
         currentContact.Special_Action__c = 'W';
         currentContact.IsCreatedFromCommunity__c = true;
+       
         if(String.IsNotBlank(currentEmployeeDetail.branchName))
         {
             currentContact.Branch_Name__c =currentEmployeeDetail.branchName;
@@ -612,7 +653,7 @@ public with sharing class WrapperUtils
             }
             currentContact.Freeze__c =  Date.newInstance(Integer.valueOf(freezeSplitted[2]), Integer.valueOf(freezeSplitted[0]), Integer.valueOf(freezeSplitted[1]));
         }
-        
+
         if(currentEmployeeDetail.addedDate != null && currentEmployeeDetail.addedDate != '')
         {
             List<String> addedDateSplitted = new List<String>();
@@ -2022,8 +2063,8 @@ public with sharing class WrapperUtils
                                                             EmployeeReimbursement__r.Total_Variable_Rate__c,EmployeeReimbursement__r.Total_Pending__c,
                                                             Origin_Name__c,Tracing_Style__c,StartTime__c,EndTime__c,Day_Of_Week__c,Destination_Name__c,
                                                             EmployeeReimbursement__r.Contact_Id__r.External_Email__c,EmployeeReimbursement__r.Monthly_Variable_Amount__c,
-                                                            Maintenance_and_Tires__c,Fuel_price__c,EmployeeReimbursement__r.Total_Mileage__c,
-                                                            EmployeeReimbursement__r.Total_Rejected__c,Notes__c 
+                                                            Maintenance_and_Tires__c,Fuel_price__c,EmployeeReimbursement__r.Total_Mileage__c,ConvertedEndTime__c,
+                                                            EmployeeReimbursement__r.Total_Rejected__c,Notes__c,ConvertedStartTime__c,TimeZone__c,EmployeeReimbursement__r.Mileage_Lock_Date__c  
                                                 FROM Employee_Mileage__c 
                                                 WHERE EmployeeReimbursement__r.Month__c =: month AND EmployeeReimbursement__r.Contact_Id__c =: did ])
         {
@@ -2031,6 +2072,7 @@ public with sharing class WrapperUtils
         }        
         if(employeeMileageList.size() > 0) 
         {
+            System.debug('employeeMileageList'+employeeMileageList);
             return JSON.serialize(employeeMileageList).unescapeHtml4();
         }
         else
@@ -2043,7 +2085,7 @@ public with sharing class WrapperUtils
        
         String month = WrapperUtils.getMonthno(clickedMonth);      
         month = month +'-'+year;
-        String query = 'SELECT id,Name,Trip_Date__c,Trip_Origin__c,Trip_Destination__c,Mileage__c,Variable__c,Trip_Status__c,Approved_Date__c,EmployeeReimbursement__c,EmployeeReimbursement__r.month__c, EmployeeReimbursement__r.Contact_Id__c,CreatedDate,Rejected__c,EmployeeReimbursement__r.Total_Variable_Rate__c,EmployeeReimbursement__r.Total_Pending__c,Origin_Name__c,Tracing_Style__c,StartTime__c,EndTime__c,Day_Of_Week__c,Destination_Name__c,EmployeeReimbursement__r.Contact_Id__r.External_Email__c,EmployeeReimbursement__r.Monthly_Variable_Amount__c,Maintenance_and_Tires__c,Fuel_price__c,EmployeeReimbursement__r.Total_Mileage__c,EmployeeReimbursement__r.Total_Rejected__c,Notes__c FROM Employee_Mileage__c WHERE EmployeeReimbursement__r.Month__c = \''+month+'\' AND EmployeeReimbursement__r.Contact_Id__c =\''+did+'\'';      
+        String query = 'SELECT id,Name,Trip_Date__c,Trip_Origin__c,Trip_Destination__c,Mileage__c,Variable__c,Trip_Status__c,Approved_Date__c,EmployeeReimbursement__c,EmployeeReimbursement__r.month__c, EmployeeReimbursement__r.Contact_Id__c,CreatedDate,Rejected__c,EmployeeReimbursement__r.Total_Variable_Rate__c,EmployeeReimbursement__r.Total_Pending__c,Origin_Name__c,Tracing_Style__c,StartTime__c,EndTime__c,Day_Of_Week__c,Destination_Name__c,EmployeeReimbursement__r.Contact_Id__r.External_Email__c,EmployeeReimbursement__r.Monthly_Variable_Amount__c,Maintenance_and_Tires__c,Fuel_price__c,EmployeeReimbursement__r.Total_Mileage__c,EmployeeReimbursement__r.Total_Rejected__c,Notes__c,TimeZone__c,EmployeeReimbursement__r.Mileage_Lock_Date__c,ConvertedStartTime__c,ConvertedEndTime__c FROM Employee_Mileage__c WHERE EmployeeReimbursement__r.Month__c = \''+month+'\' AND EmployeeReimbursement__r.Contact_Id__c =\''+did+'\'';      
         
         List<Employee_Mileage__c> employeeMileageList =  (List<Employee_Mileage__c>)ExecuteQueryUtil.getRecordListFromsObject(query);
         System.Debug(employeeMileageList);
@@ -2094,6 +2136,7 @@ public with sharing class WrapperUtils
                     contact currentDriver = new contact();
                     currentDriver.id= did;
                     currentDriver.Insurance_Attachment_Id__c = insuranceAttachment.id;
+                    currentDriver.Insurance_Upload_Date__c = System.today();
                     update currentDriver;
                 }
             }
@@ -2105,6 +2148,7 @@ public with sharing class WrapperUtils
                     contact currentDriver = new contact();
                     currentDriver.id= did;
                     currentDriver.Insurance_Attachment_Id__c = insuranceAttachment.id;
+                    currentDriver.Insurance_Upload_Date__c = System.today();
                     update currentDriver;
                     
                 }
@@ -2630,16 +2674,17 @@ public with sharing class WrapperUtils
             reimbursement = (EmployeeMileagesForCalculation)Json.deserialize(reimbursementDetails,EmployeeMileagesForCalculation.class);
             List<EmployeeMileages> employeeMileagesList = new List<EmployeeMileages>();
             for(Employee_Mileage__c currentMileage : [SELECT id,Name,Trip_Status__c,Trip_Date__c,Trip_Origin__c,Trip_Destination__c,
-                                                            Approved_Date__c,Mileage__c,Variable__c,EmployeeReimbursement__c,
+                                                            Approved_Date__c,Mileage__c,Variable__c,EmployeeReimbursement__c,TimeZone__c,
                                                             EmployeeReimbursement__r.month__c,EmployeeReimbursement__r.Total_Pending__c,
                                                             EmployeeReimbursement__r.Total_Mileage__c,EmployeeReimbursement__r.Contact_Id__c,
                                                             CreatedDate,Rejected__c,Origin_Name__c,Tracing_Style__c,StartTime__c,EndTime__c,
                                                             Day_Of_Week__c,Destination_Name__c,EmployeeReimbursement__r.Contact_Id__r.External_Email__c,
-                                                            Maintenance_and_Tires__c,Fuel_price__c,EmployeeReimbursement__r.Total_Variable_Rate__c,
-                                                            EmployeeReimbursement__r.Total_Rejected__c,Notes__c
+                                                            Maintenance_and_Tires__c,Fuel_price__c,EmployeeReimbursement__r.Total_Variable_Rate__c,ConvertedStartTime__c,ConvertedEndTime__c, 
+                                                            EmployeeReimbursement__r.Total_Rejected__c,Notes__c,EmployeeReimbursement__r.Mileage_Lock_Date__c
                                                     FROM Employee_Mileage__c 
-                                                    WHERE Trip_Status__c =: StaticValues.noApprovedYet 
-                                                    AND Approved_Date__c = null AND EmployeeReimbursement__c IN : reimbursement.reimbursementIdList])
+                                                    WHERE 
+                                                    //Trip_Status__c =: StaticValues.noApprovedYet AND Approved_Date__c = null AND 
+                                                    EmployeeReimbursement__c IN : reimbursement.reimbursementIdList])
             {
                 employeeMileagesList.add(getMileagesOfReimbursement(currentMileage));
             }
@@ -2663,7 +2708,9 @@ public with sharing class WrapperUtils
                 currentReimbursement.id= String.valueOf(currentMileage);
                 currentReimbursement.Status__c = 'Approved';
                 currentReimbursement.Approved_Date__c = System.today();
+                system.debug('currentReimbursement'+currentReimbursement);
                 employeeReimbursementList.add(currentReimbursement);
+                
              }
              if(employeeReimbursementList.size()>0)
              {
@@ -2758,9 +2805,10 @@ public with sharing class WrapperUtils
             return '';
         }
     }*/ 
+    
     //AI-000426
     public static void updateLockDate(String accountId, String lockDate){
-    System.debug('accountId'+accountId+''+'lockDate'+lockDate);
+		System.debug('accountId'+accountId+''+'lockDate'+lockDate);
         //String accountId = '0013100001m0o3GAAQ';
         //String lockDate = '2020-03-25';
         if(accountId != null && lockDate != null){

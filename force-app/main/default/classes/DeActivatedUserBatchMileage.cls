@@ -106,6 +106,23 @@ global class DeActivatedUserBatchMileage implements Database.Batchable<sObject>,
         Set<Employee_Mileage__c> mileageset = new Set<Employee_Mileage__c>();
         List<String> callOutTripStatus = new List<String>{'S','U'};      
         Double totalmileages = 0;
+        Set<Id> reimburIDs = new Set<Id>();
+        Map<Integer,Double> oldMileagesMap = new Map<Integer,Double>();
+
+        for(Employee_Reimbursement__c currentReimbur : reimbursementList)
+        {
+            reimburIDs.add(currentReimbur.Id);
+        }
+
+        If(reimburIDs.size() > 0){
+            for(Employee_Mileage__c empObj : [SELECT id,Trip_Id__c, Mileage__c, EmployeeReimbursement__c 
+                                            FROM Employee_Mileage__c 
+                                            WHERE EmployeeReimbursement__c In : reimburIDs]){
+                
+                oldMileagesMap.put(Integer.valueOf(empObj.Trip_Id__c), empObj.Mileage__c);
+            }
+        }
+
         for(Employee_Reimbursement__c currentReimbursement : reimbursementList)
         {
             
@@ -287,7 +304,20 @@ global class DeActivatedUserBatchMileage implements Database.Batchable<sObject>,
                             String[] splitDate = startDateMileage.split('T');
                             singleMileage.Trip_Date__c = Date.valueof(splitDate[0]);
                             System.debug('singleMileage'+singleMileage);
-                            mileageset.add(singleMileage);
+
+                            //mileageset.add(singleMileage);
+                            if(oldMileagesMap.size()>0 && oldMileagesMap.containsKey(singleTrips.Id))
+                            {
+                                Double mileages = oldMileagesMap.get(singleTrips.Id);
+                                if(mileages != singleTrips.mileage){
+                                    mileageset.add(singleMileage);
+                                }
+                                 
+                            }
+                            else
+                            {
+                                mileageset.add(singleMileage);
+                            }
                         }
                         triplogRecord = new TripsLog__c();
                         triplogRecord.Contact__c = currentReimbursement.Contact_Id__c;
